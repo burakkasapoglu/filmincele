@@ -29,9 +29,19 @@ class AdminController extends Controller
             'uniqueVisitors' => PageView::whereDate('created_at', $today)->distinct('session_id')->count('session_id'),
             'recentUsers' => User::latest()->take(5)->get(),
             'recentRatings' => Rating::with(['user', 'movie'])->latest()->take(10)->get(),
+            'recentVisitors' => PageView::with('user')->latest()->take(20)->get(),
+            'hourlyViews' => PageView::selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+                ->whereDate('created_at', $today)->groupBy('hour')->orderBy('hour')->get(),
             'dailyViews' => PageView::selectRaw('DATE(created_at) as date, COUNT(*) as count')
                 ->where('created_at', '>=', now()->subDays(14))
                 ->groupBy('date')->orderBy('date', 'desc')->get(),
+            'topActiveUsers' => PageView::selectRaw('user_id, COUNT(*) as count')
+                ->whereNotNull('user_id')->where('created_at', '>=', now()->subDays(30))
+                ->groupBy('user_id')->orderByDesc('count')->take(10)->get()
+                ->map(function ($v) {
+                    $v->user = User::find($v->user_id);
+                    return $v;
+                }),
             'topMovies' => PageView::selectRaw('movie_id, COUNT(*) as count')
                 ->whereNotNull('movie_id')->where('url', 'like', '/film/%')
                 ->groupBy('movie_id')->orderByDesc('count')->take(10)->get(),
@@ -39,11 +49,7 @@ class AdminController extends Controller
                 ->where('url', 'like', '/blog/%')->where('url', 'not like', '/blog?%')
                 ->groupBy('url')->orderByDesc('count')->take(10)->get(),
             'topRated' => Rating::selectRaw('movie_id, AVG(rating) as avg, COUNT(*) as count')
-                ->with('movie')
-                ->groupBy('movie_id')
-                ->orderByDesc('count')
-                ->take(10)
-                ->get(),
+                ->with('movie')->groupBy('movie_id')->orderByDesc('count')->take(10)->get(),
             'popularGenres' => $this->getPopularGenres(),
         ]);
     }
