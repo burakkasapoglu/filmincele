@@ -101,7 +101,11 @@ class TmdbService
 
     public function getUpcoming(int $page = 1): array
     {
-        $data = $this->fetch('/movie/upcoming', ['page' => $page]);
+        $data = $this->fetch('/discover/movie', [
+            'primary_release_date.gte' => now()->format('Y-m-d'),
+            'sort_by' => 'primary_release_date.asc',
+            'page' => $page,
+        ]);
         return $data['results'] ?? [];
     }
 
