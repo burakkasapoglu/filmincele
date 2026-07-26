@@ -3,24 +3,41 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PageView;
 use App\Models\Rating;
 use App\Models\Watchlist;
 use App\Models\User;
 use App\Models\Post;
 use App\Services\SocialMediaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
+        $today = now()->format('Y-m-d');
+
         return view('admin.dashboard', [
             'userCount' => User::count(),
             'ratingCount' => Rating::count(),
             'watchlistCount' => Watchlist::count(),
             'postCount' => Post::count(),
+            'todayViews' => PageView::whereDate('created_at', $today)->count(),
+            'weekViews' => PageView::where('created_at', '>=', now()->subDays(7))->count(),
+            'totalViews' => PageView::count(),
+            'uniqueVisitors' => PageView::whereDate('created_at', $today)->distinct('session_id')->count('session_id'),
             'recentUsers' => User::latest()->take(5)->get(),
             'recentRatings' => Rating::with(['user', 'movie'])->latest()->take(10)->get(),
+            'dailyViews' => PageView::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subDays(14))
+                ->groupBy('date')->orderBy('date', 'desc')->get(),
+            'topMovies' => PageView::selectRaw('movie_id, COUNT(*) as count')
+                ->whereNotNull('movie_id')->where('url', 'like', '/film/%')
+                ->groupBy('movie_id')->orderByDesc('count')->take(10)->get(),
+            'topBlogPosts' => PageView::selectRaw('url, COUNT(*) as count')
+                ->where('url', 'like', '/blog/%')->where('url', 'not like', '/blog?%')
+                ->groupBy('url')->orderByDesc('count')->take(10)->get(),
             'topRated' => Rating::selectRaw('movie_id, AVG(rating) as avg, COUNT(*) as count')
                 ->with('movie')
                 ->groupBy('movie_id')

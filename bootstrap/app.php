@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'age-gate' => \App\Http\Middleware\AgeGateMiddleware::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackPageViews::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
