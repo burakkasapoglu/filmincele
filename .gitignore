@@ -1,0 +1,14 @@
+node_modules/
+vendor/
+.env
+storage/logs/
+storage/framework/cache/
+storage/framework/views/*
+storage/framework/sessions/*
+public/storage
+public/build
+public/hot
+*.zip
+.DS_Store
+.idea/
+.vscode/

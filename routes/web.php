@@ -1,0 +1,138 @@
+<?php
+
+use App\Http\Controllers\Auth\SocialiteController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('home');
+})->name('home');
+
+Route::get('/mod/{mood}', function (string $mood) {
+    $moods = config('moods');
+    if (!isset($moods[$mood])) {
+        abort(404);
+    }
+    return view('mood', ['mood' => $mood]);
+})->middleware('age-gate')->name('mood');
+
+Route::get('/film/{idAndSlug}', function (string $idAndSlug) {
+    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    return view('movie-detail', ['tmdbId' => $tmdbId]);
+})->name('movie.show');
+
+Route::get('/dizi/{idAndSlug}', function (string $idAndSlug) {
+    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    return view('tv-detail', ['tmdbId' => $tmdbId]);
+})->name('tv.show');
+
+Route::get('/kisi/{idAndSlug}', function (string $idAndSlug) {
+    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    return view('person-detail', ['tmdbId' => $tmdbId]);
+})->name('person.show');
+
+Route::get('/kesfet', function () {
+    return view('discover');
+})->name('discover');
+
+Route::get('/vizyonda', function () {
+    return view('now-playing');
+})->name('now-playing');
+
+Route::get('/yakinda', function () {
+    return view('upcoming');
+})->name('upcoming');
+
+Route::get('/platform/{providerId}/{name?}', function (int $providerId, ?string $name = null) {
+    return view('platform', ['providerId' => $providerId, 'name' => $name]);
+})->name('platform');
+
+Route::get('/sirket/{companyId}/{name?}', function (int $companyId, ?string $name = null) {
+    return view('company', ['companyId' => $companyId, 'name' => $name]);
+})->name('company');
+
+Route::get('/ulke/{countryCode}/{name?}', function (string $countryCode, ?string $name = null) {
+    return view('country', ['countryCode' => $countryCode, 'name' => $name]);
+})->name('country');
+
+Route::get('/blog', function () {
+    return view('blog');
+})->name('blog');
+
+Route::get('/blog/{slug}', function (string $slug) {
+    $post = \App\Models\Post::where('slug', $slug)->firstOrFail();
+    return view('blog-detail', ['post' => $post]);
+})->name('blog.show');
+
+Route::get('/giris', function () {
+    return view('auth.login');
+});
+
+Route::get('/kayit', function () {
+    return view('auth.register');
+});
+
+Route::get('/kvkk', function () {
+    return view('kvkk');
+})->name('kvkk');
+
+Route::get('/google{code}.html', function (string $code) {
+    $verification = env('GOOGLE_SEARCH_CONSOLE', '');
+    if ($code === $verification || $code === '/' . $verification) {
+        return response("google-site-verification: {$verification}.html", 200)->header('Content-Type', 'text/html');
+    }
+    abort(404);
+})->where('code', '.*');
+
+Route::post('/deploy/{token}', function (string $token) {
+    if ($token !== env('DEPLOY_TOKEN', '')) abort(403);
+    $output = shell_exec('cd ' . base_path() . ' && git pull origin main 2>&1 && composer install --no-dev --optimize-autoloader 2>&1 && php artisan migrate --force 2>&1 && php artisan optimize 2>&1 && php artisan sitemap:generate 2>&1');
+    return response('<pre>' . $output . '</pre>');
+});
+
+Route::get('/koleksiyon/{slug}', function (string $slug) {
+    $collections = config('collections');
+    if (!isset($collections[$slug])) abort(404);
+    return view('collection', ['collection' => $collections[$slug], 'slug' => $slug]);
+})->name('collection');
+
+Route::get('/karsilastir/{id1?}/{id2?}', function (?int $id1 = null, ?int $id2 = null) {
+    return view('compare', ['id1' => $id1, 'id2' => $id2]);
+})->name('compare');
+
+Route::get('/istatistikler', function () {
+    return view('stats');
+})->name('stats');
+
+Route::get('/auth/{provider}/redirect', [SocialiteController::class, 'redirect'])
+    ->name('socialite.redirect');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'callback'])
+    ->name('socialite.callback');
+
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+    Route::get('/profil', function () {
+        return view('profile');
+    })->name('profile');
+
+    Route::get('/profil/duzenle', function () {
+        return view('edit-profile');
+    })->name('profile.edit');
+
+    Route::get('/dashboard', function () {
+        return redirect('/profil');
+    });
+});
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/uyeler', [\App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');
+    Route::get('/uyeler/{user}', [\App\Http\Controllers\Admin\AdminController::class, 'userDetail'])->name('users.show');
+    Route::post('/uyeler/{user}/toggle-admin', [\App\Http\Controllers\Admin\AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::get('/blog', [\App\Http\Controllers\Admin\AdminController::class, 'posts'])->name('posts');
+    Route::get('/blog/yeni', [\App\Http\Controllers\Admin\AdminController::class, 'createPost'])->name('posts.create');
+    Route::post('/blog/yeni', [\App\Http\Controllers\Admin\AdminController::class, 'storePost'])->name('posts.store');
+    Route::get('/blog/{post}/duzenle', [\App\Http\Controllers\Admin\AdminController::class, 'editPost'])->name('posts.edit');
+    Route::put('/blog/{post}/duzenle', [\App\Http\Controllers\Admin\AdminController::class, 'updatePost'])->name('posts.update');
+    Route::delete('/blog/{post}', [\App\Http\Controllers\Admin\AdminController::class, 'deletePost'])->name('posts.delete');
+    Route::post('/blog/{post}/share', [\App\Http\Controllers\Admin\AdminController::class, 'sharePost'])->name('posts.share');
+    Route::post('/blog/image-upload', [\App\Http\Controllers\Admin\AdminController::class, 'uploadImage'])->name('posts.image-upload');
+});

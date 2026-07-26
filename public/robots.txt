@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profil
+Disallow: /giris
+Disallow: /kayit
+
+Sitemap: {{ url('/sitemap.xml') }}
