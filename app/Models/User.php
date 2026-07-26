@@ -118,25 +118,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array<int, string>
-     */
-    protected $appends = [
-        'profile_photo_url',
-    ];
-
-    protected static function booted(): void
-    {
-        static::created(function ($user) {
-            $user->watchlists()->createMany([
-                ['name' => 'İzlediklerim', 'description' => 'İzlediğim filmler', 'is_public' => false],
-                ['name' => 'İzleyeceklerim', 'description' => 'İzlemek istediğim filmler', 'is_public' => false],
-            ]);
-        });
-    }
-
-    /**
      * The attributes that should be cast.
      *
      * @return array<string, string>
@@ -148,5 +129,15 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'birth_date' => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function ($user) {
+            $user->watchlists()->createMany([
+                ['name' => 'İzlediklerim', 'is_public' => false],
+                ['name' => 'İzleyeceklerim', 'is_public' => false],
+            ]);
+        });
     }
 }
