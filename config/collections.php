@@ -3,7 +3,7 @@
 return [
     'marvel' => [
         'name' => 'Marvel Sinematik Evreni',
-        'description' => 'Iron Man\'den Avengers: Endgame\'e tüm Marvel filmleri',
+        'description' => "Iron Man'den Avengers: Endgame'e tüm Marvel filmleri",
         'emoji' => '🦸',
         'movies' => [
             1726, 1724, 10138, 10195, 1771, 24428, 68721, 76338, 100402,
@@ -15,7 +15,7 @@ return [
         'name' => 'Yüzüklerin Efendisi & Hobbit',
         'description' => 'Orta Dünya destanı',
         'emoji' => '🧙',
-        'movies' => [120, 121, 122, 49051, 57158, 49047],
+        'movies' => [120, 121, 122, 49051, 57158, 122917],
     ],
     'star-wars' => [
         'name' => 'Star Wars Evreni',
@@ -31,7 +31,7 @@ return [
     ],
     'dark-knight' => [
         'name' => 'Kara Şövalye Üçlemesi',
-        'description' => 'Christopher Nolan\'ın Batman üçlemesi',
+        'description' => "Christopher Nolan'ın Batman üçlemesi",
         'emoji' => '🦇',
         'movies' => [272, 155, 49026],
     ],
@@ -45,19 +45,19 @@ return [
         'name' => 'Hızlı ve Öfkeli Serisi',
         'description' => 'Aile ve hız tutkusu',
         'emoji' => '🏎️',
-        'movies' => [9799, 584, 82992, 51497, 51497, 168259, 337339, 346648, 385687, 298250],
+        'movies' => [9799, 584, 9615, 13804, 51497, 82992, 168259, 337339, 298250, 385687],
     ],
     'mission-impossible' => [
         'name' => 'Mission: Impossible',
         'description' => 'Tom Cruise ile imkansız görevler',
         'emoji' => '💣',
-        'movies' => [954, 955, 956, 957, 56292, 177572, 291805, 346698, 575264],
+        'movies' => [954, 955, 956, 56292, 177677, 353081, 575264, 575265],
     ],
     'pixar' => [
         'name' => 'Pixar Klasikleri',
         'description' => 'En sevilen Pixar animasyonları',
         'emoji' => '✨',
-        'movies' => [862, 863, 948, 585, 10193, 14160, 269149, 2062, 10681],
+        'movies' => [862, 863, 12, 585, 10193, 14160, 2062, 10681, 9487],
     ],
     'must-watch' => [
         'name' => 'Mutlaka İzlenmesi Gerekenler',
