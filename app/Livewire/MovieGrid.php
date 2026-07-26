@@ -93,7 +93,7 @@ class MovieGrid extends Component
 
         if (!empty($moodData['adult'])) {
             $filters['include_adult'] = 'true';
-            $filters['vote_count.gte'] = 5;
+            $filters['vote_count.gte'] = $this->mediaType === 'tv' ? 5 : 10;
         }
 
         if ($this->ratingMin) {

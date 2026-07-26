@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -19,7 +18,6 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory;
 
-    use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
 
@@ -38,7 +36,28 @@ class User extends Authenticatable implements MustVerifyEmail
         'bio',
         'location',
         'website',
+        'profile_photo_path',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        if ($this->profile_photo_path) {
+            if (str_starts_with($this->profile_photo_path, 'http')) {
+                return $this->profile_photo_path;
+            }
+            return asset('storage/' . $this->profile_photo_path);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=fff&background=f43f5e&size=128';
+    }
 
     public function age(): ?int
     {

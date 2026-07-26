@@ -86,7 +86,7 @@ return [
         'label' => '+18 Yetişkin',
         'description' => 'Sadece yetişkinler',
         'genres' => [10749],
-        'tv_genres' => [10766],
+        'tv_genres' => [],
         'gradient' => 'from-red-800 to-gray-900',
         'adult' => true,
     ],
