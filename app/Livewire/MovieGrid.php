@@ -95,6 +95,10 @@ class MovieGrid extends Component
             $filters['include_adult'] = 'true';
         }
 
+        if (!empty($moodData['keywords'])) {
+            $filters['with_keywords'] = $moodData['keywords'];
+        }
+
         if ($this->ratingMin) {
             $filters['vote_average.gte'] = $this->ratingMin;
         }

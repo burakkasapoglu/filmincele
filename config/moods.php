@@ -89,6 +89,7 @@ return [
         'tv_genres' => [],
         'gradient' => 'from-red-800 to-gray-900',
         'adult' => true,
+        'keywords' => '1907,965,8233,4379,4434,6149',
     ],
     'turk' => [
         'emoji' => '🇹🇷',
