@@ -93,10 +93,7 @@ class MovieGrid extends Component
 
         if (!empty($moodData['adult'])) {
             $filters['include_adult'] = 'true';
-        }
-
-        if (!empty($moodData['keywords'])) {
-            $filters['with_keywords'] = $moodData['keywords'];
+            $filters['vote_count.gte'] = 5;
         }
 
         if ($this->ratingMin) {

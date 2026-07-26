@@ -85,11 +85,10 @@ return [
         'emoji' => '🔞',
         'label' => '+18 Yetişkin',
         'description' => 'Sadece yetişkinler',
-        'genres' => [],
-        'tv_genres' => [],
+        'genres' => [10749],
+        'tv_genres' => [10766],
         'gradient' => 'from-red-800 to-gray-900',
         'adult' => true,
-        'keywords' => '1907,965,8233,4379,4434,6149',
     ],
     'turk' => [
         'emoji' => '🇹🇷',
