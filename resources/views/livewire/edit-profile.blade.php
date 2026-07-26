@@ -11,7 +11,12 @@
                 <img src="{{ Auth::user()->profile_photo_url }}" class="w-full h-full object-cover">
             </div>
             <div>
-                <p class="text-gray-400 text-sm">Profil fotoğrafı değiştirmek için fotoğrafa tıkla.</p>
+                <input type="file" wire:model="photo" accept="image/*" class="text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-gray-700 file:text-white hover:file:bg-gray-600">
+                @error('photo') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                @if($photo)
+                    <button wire:click="updatePhoto" class="mt-2 px-4 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-sm rounded-lg transition">Fotoğrafı Yükle</button>
+                @endif
+                <div wire:loading wire:target="photo" class="text-gray-400 text-xs mt-1">Yükleniyor...</div>
             </div>
         </div>
     </div>

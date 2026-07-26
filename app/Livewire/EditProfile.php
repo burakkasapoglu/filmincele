@@ -5,15 +5,19 @@ namespace App\Livewire;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class EditProfile extends Component
 {
+    use WithFileUploads;
+
     public string $name = '';
     public string $email = '';
     public ?string $birthDate = null;
     public string $bio = '';
     public string $location = '';
     public string $website = '';
+    public $photo;
     public string $currentPassword = '';
     public string $newPassword = '';
     public string $newPasswordConfirmation = '';
@@ -32,6 +36,17 @@ class EditProfile extends Component
         $this->bio = $user->bio ?? '';
         $this->location = $user->location ?? '';
         $this->website = $user->website ?? '';
+    }
+
+    public function updatePhoto(): void
+    {
+        $this->validate(['photo' => 'image|max:2048']);
+
+        $user = Auth::user();
+        $path = $this->photo->store('profile-photos', 'public');
+        $user->update(['profile_photo_path' => $path]);
+        $this->successMessage = 'Fotoğraf güncellendi.';
+        $this->photo = null;
     }
 
     public function updateProfile(): void
