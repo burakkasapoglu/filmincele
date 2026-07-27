@@ -143,4 +143,4 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->g
     Route::post('/blog/image-upload', [\App\Http\Controllers\Admin\AdminController::class, 'uploadImage'])->name('posts.image-upload');
 });
 
-Route::post('/admin/blog/ai-generate', [\App\Http\Controllers\Admin\AdminController::class, 'aiGenerate'])->name('posts.ai-generate');
+Route::post('/admin/blog/ai-generate', [\App\Http\Controllers\Admin\AdminController::class, 'aiGenerate'])->name('admin.posts.ai-generate');
