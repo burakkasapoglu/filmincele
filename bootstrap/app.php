@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'admin/blog/image-upload',
+            'admin/blog/ai-generate',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
