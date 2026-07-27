@@ -170,7 +170,7 @@ class AdminController extends Controller
     public function aiGenerate(Request $request)
     {
         if (!auth()->check() || !auth()->user()->is_admin) {
-            return response()->json(['error' => 'Yetkisiz erişim.'], 403);
+            return back()->with('ai_error', 'Yetkisiz erişim.');
         }
 
         $request->validate(['topic' => 'required|string|max:200']);
@@ -179,26 +179,27 @@ class AdminController extends Controller
             $ai = app(AiBlogService::class);
 
             if (!$ai->isConfigured()) {
-                return response()->json(['error' => 'Gemini API anahtarı tanımlanmamış.'], 500);
+                return back()->with('ai_error', 'Gemini API anahtarı tanımlanmamış.')->withInput();
             }
 
             $result = $ai->generateBlogPost($request->topic);
 
             if (!$result) {
-                return response()->json(['error' => 'İçerik oluşturulamadı. Lütfen tekrar deneyin.'], 500);
+                return back()->with('ai_error', 'İçerik oluşturulamadı. Lütfen tekrar deneyin.')->withInput();
             }
 
             $imageUrl = $ai->searchImage($result['image_query'] ?? $request->topic);
 
-            return response()->json([
-                'title' => $result['title'],
-                'excerpt' => $result['excerpt'] ?? '',
-                'body' => $result['body'],
-                'category' => $result['category'] ?? 'Liste',
-                'image_url' => $imageUrl,
+            return redirect()->route('admin.posts.create')->with([
+                'ai_title' => $result['title'],
+                'ai_excerpt' => $result['excerpt'] ?? '',
+                'ai_body' => $result['body'],
+                'ai_category' => $result['category'] ?? 'Liste',
+                'ai_image_url' => $imageUrl,
+                'ai_topic' => $request->topic,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Sunucu hatası: ' . $e->getMessage()], 500);
+            return back()->with('ai_error', 'Sunucu hatası: ' . $e->getMessage())->withInput();
         }
     }
 
