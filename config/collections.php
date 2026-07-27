@@ -45,7 +45,7 @@ return [
         'name' => 'Hızlı ve Öfkeli Serisi',
         'description' => 'Aile ve hız tutkusu',
         'emoji' => '🏎️',
-        'movies' => [9799, 584, 9615, 13804, 51497, 82992, 168259, 337339, 298250, 385687],
+        'movies' => [9799, 584, 9615, 13804, 51497, 82992, 168259, 337339, 385128, 385687],
     ],
     'mission-impossible' => [
         'name' => 'Mission: Impossible',
