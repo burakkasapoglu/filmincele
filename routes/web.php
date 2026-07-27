@@ -89,6 +89,12 @@ Route::post('/deploy/{token}', function (string $token) {
     return response('<pre>' . $output . '</pre>');
 });
 
+Route::get('/storage/{path}', function (string $path) {
+    $file = storage_path('app/public/' . $path);
+    if (!file_exists($file)) abort(404);
+    return response()->file($file);
+})->where('path', '.*');
+
 Route::get('/koleksiyon/{slug}', function (string $slug) {
     $collections = config('collections');
     if (!isset($collections[$slug])) abort(404);
