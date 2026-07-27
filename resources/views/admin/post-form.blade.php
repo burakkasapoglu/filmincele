@@ -26,21 +26,21 @@
     {{-- AI Generation --}}
     @if(!$post)
     <div class="bg-gradient-to-r from-violet-900/30 to-purple-900/30 border border-violet-600/20 rounded-2xl p-5 mb-6">
-        <form method="POST" action="{{ route('admin.posts.ai-generate') }}" target="_self">
-            @csrf
+        <form method="GET" action="{{ route('admin.posts.create') }}">
             <div class="flex items-center gap-2 mb-2">
                 <span class="text-xl">🤖</span>
                 <h3 class="text-white font-semibold text-sm">Yapay Zeka ile Blog Yazısı Oluştur</h3>
             </div>
             <div class="flex gap-3">
-                <input type="text" name="topic" placeholder="Konu yaz... (örn: En iyi korku filmleri 2026)"
+                <input type="text" name="ai_topic" value="{{ request('ai_topic') }}"
+                       placeholder="Konu yaz... (örn: En iyi korku filmleri 2026)"
                        class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:ring-violet-500 focus:border-violet-500 transition" required>
                 <button type="submit" class="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition">
                     ✨ Oluştur
                 </button>
             </div>
-            @if(session('ai_error'))
-                <p class="text-red-400 text-xs mt-2">❌ {{ session('ai_error') }}</p>
+            @if($ai_error ?? null)
+                <p class="text-red-400 text-xs mt-2">❌ {{ $ai_error }}</p>
             @endif
         </form>
     </div>
@@ -53,15 +53,15 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div class="lg:col-span-3 space-y-5">
                 <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
-                    <input type="text" name="title" value="{{ old('title', $post->title ?? session('ai_title', '')) }}" required
+                    <input type="text" name="title" value="{{ old('title', $post->title ?? $ai_title ?? '') }}" required
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg font-semibold placeholder-gray-500 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 transition mb-4"
                            placeholder="Yazı başlığı...">
 
                     <textarea name="excerpt" rows="2"
                               class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 transition mb-4"
-                              placeholder="Kısa bir özet...">{{ old('excerpt', $post->excerpt ?? session('ai_excerpt', '')) }}</textarea>
+                              placeholder="Kısa bir özet...">{{ old('excerpt', $post->excerpt ?? $ai_excerpt ?? '') }}</textarea>
 
-                    <textarea id="editor" name="body" required>{{ old('body', $post->body ?? session('ai_body', '')) ?: "## Başlık\n\nYazı içeriğinizi buraya yazın..." }}</textarea>
+                    <textarea id="editor" name="body" required>{{ old('body', $post->body ?? $ai_body ?? '') ?: "## Başlık\n\nYazı içeriğinizi buraya yazın..." }}</textarea>
                 </div>
             </div>
 
@@ -71,7 +71,7 @@
                         <label class="block text-sm font-medium text-gray-300 mb-1.5">Kategori</label>
                         <select name="category" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 transition">
                             @foreach(['Rehber', 'Liste', 'Haber', 'Analiz', 'Eğlence', 'Tartışma', 'Tür Analizi', 'Tarih', 'Teknoloji', 'Festival', 'Profil', 'Trend'] as $cat)
-                                <option value="{{ $cat }}" {{ old('category', $post->category ?? session('ai_category', 'Liste')) === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                <option value="{{ $cat }}" {{ old('category', $post->category ?? $ai_category ?? 'Liste') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -92,7 +92,7 @@
 
                 <div class="bg-gray-900 rounded-xl border border-gray-800 p-5 space-y-4">
                     <h3 class="text-sm font-medium text-white">Kapak Görseli</h3>
-                    @php $imgUrl = old('image_url', $post->image_url ?? session('ai_image_url', '')); @endphp
+                    @php $imgUrl = old('image_url', $post->image_url ?? $ai_image_url ?? ''); @endphp
                     <div id="image-preview" class="aspect-video rounded-xl bg-gray-800 overflow-hidden {{ $imgUrl ? '' : 'hidden' }}">
                         <img src="{{ $imgUrl }}" class="w-full h-full object-cover" id="preview-img">
                     </div>

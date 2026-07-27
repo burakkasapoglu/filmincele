@@ -142,5 +142,3 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->g
     Route::post('/blog/{post}/share', [\App\Http\Controllers\Admin\AdminController::class, 'sharePost'])->name('posts.share');
     Route::post('/blog/image-upload', [\App\Http\Controllers\Admin\AdminController::class, 'uploadImage'])->name('posts.image-upload');
 });
-
-Route::post('/blog/ai-generate', [\App\Http\Controllers\Admin\AdminController::class, 'aiGenerate'])->name('admin.posts.ai-generate');

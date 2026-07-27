@@ -85,9 +85,33 @@ class AdminController extends Controller
         ]);
     }
 
-    public function createPost()
+    public function createPost(Request $request)
     {
-        return view('admin.post-form', ['post' => null]);
+        $data = ['post' => null];
+
+        if ($request->has('ai_topic') && !empty($request->ai_topic)) {
+            try {
+                $ai = app(\App\Services\AiBlogService::class);
+                if ($ai->isConfigured()) {
+                    $result = $ai->generateBlogPost($request->ai_topic);
+                    if ($result) {
+                        $data['ai_title'] = $result['title'];
+                        $data['ai_excerpt'] = $result['excerpt'] ?? '';
+                        $data['ai_body'] = $result['body'];
+                        $data['ai_category'] = $result['category'] ?? 'Liste';
+                        $data['ai_image_url'] = $ai->searchImage($result['image_query'] ?? $request->ai_topic);
+                    } else {
+                        $data['ai_error'] = 'İçerik oluşturulamadı. Lütfen tekrar deneyin.';
+                    }
+                } else {
+                    $data['ai_error'] = 'Gemini API anahtarı tanımlanmamış.';
+                }
+            } catch (\Exception $e) {
+                $data['ai_error'] = 'Hata: ' . $e->getMessage();
+            }
+        }
+
+        return view('admin.post-form', $data);
     }
 
     public function editPost(Post $post)
