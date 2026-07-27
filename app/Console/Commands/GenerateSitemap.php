@@ -4,12 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class GenerateSitemap extends Command
 {
     protected $signature = 'sitemap:generate';
-    protected $description = 'Generate sitemap.xml';
+    protected $description = 'Generate sitemap.xml and sitemap_index.xml';
 
     public function handle(): int
     {
@@ -23,7 +22,9 @@ class GenerateSitemap extends Command
             ['url' => url('/kesfet'), 'changefreq' => 'daily', 'priority' => '0.9'],
             ['url' => url('/blog'), 'changefreq' => 'daily', 'priority' => '0.9'],
             ['url' => url('/vizyonda'), 'changefreq' => 'daily', 'priority' => '0.8'],
-            ['url' => url('/yakinda'), 'changefreq' => 'weekly', 'priority' => '0.8'],
+            ['url' => url('/yakinda'), 'changefreq' => 'daily', 'priority' => '0.8'],
+            ['url' => url('/karsilastir'), 'changefreq' => 'weekly', 'priority' => '0.7'],
+            ['url' => url('/istatistikler'), 'changefreq' => 'weekly', 'priority' => '0.7'],
             ['url' => url('/kvkk'), 'changefreq' => 'monthly', 'priority' => '0.3'],
         ];
 
@@ -53,10 +54,19 @@ class GenerateSitemap extends Command
         }
 
         $xml .= '</urlset>';
-
         file_put_contents(public_path('sitemap.xml'), $xml);
+        $this->info('✓ sitemap.xml oluşturuldu');
 
-        $this->info('✓ sitemap.xml oluşturuldu: ' . public_path('sitemap.xml'));
+        $indexXml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+        $indexXml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+        $indexXml .= '  <sitemap>' . PHP_EOL;
+        $indexXml .= '    <loc>' . url('/sitemap.xml') . '</loc>' . PHP_EOL;
+        $indexXml .= '    <lastmod>' . now()->toAtomString() . '</lastmod>' . PHP_EOL;
+        $indexXml .= '  </sitemap>' . PHP_EOL;
+        $indexXml .= '</sitemapindex>';
+        file_put_contents(public_path('sitemap_index.xml'), $indexXml);
+        $this->info('✓ sitemap_index.xml oluşturuldu');
+
         return self::SUCCESS;
     }
 }

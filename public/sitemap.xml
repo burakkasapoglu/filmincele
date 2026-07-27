@@ -22,8 +22,18 @@
   </url>
   <url>
     <loc>http://localhost:8000/yakinda</loc>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>http://localhost:8000/karsilastir</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>http://localhost:8000/istatistikler</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>http://localhost:8000/kvkk</loc>

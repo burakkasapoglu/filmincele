@@ -5,4 +5,4 @@ Disallow: /profil
 Disallow: /giris
 Disallow: /kayit
 
-Sitemap: {{ url('/sitemap.xml') }}
+Sitemap: {{ url('/sitemap_index.xml') }}
