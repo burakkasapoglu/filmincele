@@ -167,29 +167,35 @@ class AdminController extends Controller
         return response()->json(['data' => ['filePath' => asset('storage/' . $path)]]);
     }
 
-    public function aiGenerate(Request $request, AiBlogService $ai)
+    public function aiGenerate(Request $request)
     {
         $request->validate(['topic' => 'required|string|max:200']);
 
-        if (!$ai->isConfigured()) {
-            return response()->json(['error' => 'Gemini API anahtarı tanımlanmamış.'], 500);
+        try {
+            $ai = app(AiBlogService::class);
+
+            if (!$ai->isConfigured()) {
+                return response()->json(['error' => 'Gemini API anahtarı tanımlanmamış.'], 500);
+            }
+
+            $result = $ai->generateBlogPost($request->topic);
+
+            if (!$result) {
+                return response()->json(['error' => 'İçerik oluşturulamadı. Lütfen tekrar deneyin.'], 500);
+            }
+
+            $imageUrl = $ai->searchImage($result['image_query'] ?? $request->topic);
+
+            return response()->json([
+                'title' => $result['title'],
+                'excerpt' => $result['excerpt'] ?? '',
+                'body' => $result['body'],
+                'category' => $result['category'] ?? 'Liste',
+                'image_url' => $imageUrl,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Sunucu hatası: ' . $e->getMessage()], 500);
         }
-
-        $result = $ai->generateBlogPost($request->topic);
-
-        if (!$result) {
-            return response()->json(['error' => 'İçerik oluşturulamadı. Lütfen tekrar deneyin.'], 500);
-        }
-
-        $imageUrl = $ai->searchImage($result['image_query'] ?? $request->topic);
-
-        return response()->json([
-            'title' => $result['title'],
-            'excerpt' => $result['excerpt'] ?? '',
-            'body' => $result['body'],
-            'category' => $result['category'] ?? 'Liste',
-            'image_url' => $imageUrl,
-        ]);
     }
 
     private function getPopularGenres(): array
