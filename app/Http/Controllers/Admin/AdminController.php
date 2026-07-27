@@ -169,6 +169,10 @@ class AdminController extends Controller
 
     public function aiGenerate(Request $request)
     {
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            return response()->json(['error' => 'Yetkisiz erişim.'], 403);
+        }
+
         $request->validate(['topic' => 'required|string|max:200']);
 
         try {
