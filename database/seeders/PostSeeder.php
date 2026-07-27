@@ -311,7 +311,7 @@ Daha fazla animasyon için **[aile modumuza](/mod/aile)** göz atabilirsiniz.",
 
 **[Moon](/film/17436-moon)** — **[Sam Rockwell](/kisi/6807-sam-rockwell)**'in tek kişilik şovu.
 
-**[The Martian](/film/286565-marsli)** — **[Matt Damon](/kisi/1895-matt-damon)** Mars'ta.
+**[The Martian](/film/286565-marsli)** — **[Matt Damon](/kisi/1892-matt-damon)** Mars'ta.
 
 Daha fazlası için **[bilim kurgu modumuza](/mod/bilimkurgu)** göz atın!",
             ],
