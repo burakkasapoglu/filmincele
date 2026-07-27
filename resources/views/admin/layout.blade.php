@@ -11,6 +11,13 @@
     @livewireStyles
     @stack('head')
     <style>body { font-family: 'Inter', sans-serif; }</style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-20CZKHTLS5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-20CZKHTLS5');
+    </script>
 </head>
 <body class="antialiased bg-gray-950 text-white">
     <div class="flex min-h-screen">

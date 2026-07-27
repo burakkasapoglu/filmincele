@@ -13,6 +13,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-20CZKHTLS5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-20CZKHTLS5');
+    </script>
 </head>
 <body class="antialiased bg-gray-950 text-white">
     <nav class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
