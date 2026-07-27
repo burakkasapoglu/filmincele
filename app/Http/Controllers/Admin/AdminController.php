@@ -8,6 +8,7 @@ use App\Models\Rating;
 use App\Models\Watchlist;
 use App\Models\User;
 use App\Models\Post;
+use App\Services\AiBlogService;
 use App\Services\SocialMediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -164,6 +165,31 @@ class AdminController extends Controller
         $request->validate(['image' => 'required|image|max:2048']);
         $path = $request->file('image')->store('blog-images', 'public');
         return response()->json(['data' => ['filePath' => asset('storage/' . $path)]]);
+    }
+
+    public function aiGenerate(Request $request, AiBlogService $ai)
+    {
+        $request->validate(['topic' => 'required|string|max:200']);
+
+        if (!$ai->isConfigured()) {
+            return response()->json(['error' => 'Gemini API anahtarı tanımlanmamış.'], 500);
+        }
+
+        $result = $ai->generateBlogPost($request->topic);
+
+        if (!$result) {
+            return response()->json(['error' => 'İçerik oluşturulamadı. Lütfen tekrar deneyin.'], 500);
+        }
+
+        $imageUrl = $ai->searchImage($result['image_query'] ?? $request->topic);
+
+        return response()->json([
+            'title' => $result['title'],
+            'excerpt' => $result['excerpt'] ?? '',
+            'body' => $result['body'],
+            'category' => $result['category'] ?? 'Liste',
+            'image_url' => $imageUrl,
+        ]);
     }
 
     private function getPopularGenres(): array

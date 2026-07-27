@@ -29,6 +29,25 @@
         <h1 class="text-xl font-bold text-white">{{ $post ? 'Yazıyı Düzenle' : 'Yeni Yazı' }}</h1>
     </div>
 
+    {{-- AI Generation Panel --}}
+    @if(!$post)
+    <div class="bg-gradient-to-r from-violet-900/30 to-purple-900/30 border border-violet-600/20 rounded-2xl p-5 mb-6">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🤖</span>
+            <h3 class="text-white font-semibold text-sm">Yapay Zeka ile Blog Yazısı Oluştur</h3>
+        </div>
+        <div class="flex gap-3">
+            <input type="text" id="ai-topic" placeholder="Konu yaz... (örn: En iyi korku filmleri 2026)"
+                   class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition">
+            <button type="button" onclick="generateAI()" id="ai-btn"
+                    class="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition disabled:opacity-50">
+                ✨ Oluştur
+            </button>
+        </div>
+        <p id="ai-status" class="text-gray-500 text-xs mt-2 hidden"></p>
+    </div>
+    @endif
+
     <form method="POST" action="{{ $post ? route('admin.posts.update', $post) : route('admin.posts.store') }}" enctype="multipart/form-data">
         @csrf
         @if($post) @method('PUT') @endif
@@ -135,6 +154,68 @@ function handleFileUpload(input) {
         };
         reader.readAsDataURL(input.files[0]);
     }
+}
+
+async function generateAI() {
+    const topic = document.getElementById('ai-topic').value.trim();
+    if (!topic) return alert('Lütfen bir konu yazın.');
+
+    const btn = document.getElementById('ai-btn');
+    const status = document.getElementById('ai-status');
+    btn.disabled = true;
+    btn.textContent = '⏳ Oluşturuluyor...';
+    status.classList.remove('hidden');
+    status.textContent = 'Yapay zeka yazıyor...';
+
+    try {
+        const res = await fetch('{{ route("admin.posts.ai-generate") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ topic })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+            status.textContent = '❌ ' + data.error;
+            status.classList.remove('text-gray-500');
+            status.classList.add('text-red-400');
+        } else {
+            document.querySelector('input[name="title"]').value = data.title;
+            document.querySelector('textarea[name="excerpt"]').value = data.excerpt || '';
+
+            if (window.easyMDE) {
+                window.easyMDE.value(data.body);
+            }
+
+            if (data.image_url) {
+                document.getElementById('image-url').value = data.image_url;
+                document.getElementById('preview-img').src = data.image_url;
+                document.getElementById('image-preview').classList.remove('hidden');
+            }
+
+            const catSelect = document.querySelector('select[name="category"]');
+            if (catSelect && data.category) {
+                for (let opt of catSelect.options) {
+                    if (opt.value === data.category) { opt.selected = true; break; }
+                }
+            }
+
+            status.textContent = '✅ İçerik oluşturuldu! Düzenleyip yayınlayabilirsiniz.';
+            status.classList.remove('text-red-400');
+            status.classList.add('text-emerald-400');
+        }
+    } catch (e) {
+        status.textContent = '❌ Bağlantı hatası.';
+        status.classList.add('text-red-400');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✨ Oluştur';
 }
 </script>
 @endsection
