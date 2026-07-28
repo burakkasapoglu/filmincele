@@ -37,6 +37,10 @@
                 <p class="text-gray-500 text-xs mt-1">+18 içerikler için yaşınızı doğrulamak amacıyla gereklidir.</p>
             </div>
 
+            <div style="position:absolute;left:-9999px" aria-hidden="true">
+                <input type="text" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
             <div class="mt-4">
                     <x-label for="terms">

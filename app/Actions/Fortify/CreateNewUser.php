@@ -19,7 +19,7 @@ class CreateNewUser implements CreatesNewUsers
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => $this->passwordRules(),
             'birth_date' => ['required', 'date', 'before_or_equal:' . now()->subYears(13)->format('Y-m-d')],
-            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
+            'website' => ['nullable', 'string', 'max:0'],
         ], [
             'birth_date.required' => 'Doğum tarihi zorunludur.',
             'birth_date.before_or_equal' => 'En az 13 yaşında olmalısınız.',
