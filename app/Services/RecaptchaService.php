@@ -28,12 +28,17 @@ class RecaptchaService
     public function verify(string $token): bool
     {
         if (!$this->isConfigured()) return true;
+        if (empty($token)) return false;
 
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => $this->secret,
-            'response' => $token,
-        ]);
-
-        return $response->json('success', false);
+        try {
+            $response = Http::timeout(5)->asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $this->secret,
+                'response' => $token,
+            ]);
+            return $response->json('success', false);
+        } catch (\Exception $e) {
+            // If Google is unreachable, allow registration
+            return true;
+        }
     }
 }

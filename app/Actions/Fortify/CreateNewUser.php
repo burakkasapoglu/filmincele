@@ -20,10 +20,12 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
             'birth_date' => ['required', 'date', 'before_or_equal:' . now()->subYears(13)->format('Y-m-d')],
             'g-recaptcha-response' => [function ($attr, $value, $fail) {
-                $recaptcha = new RecaptchaService();
-                if ($recaptcha->isConfigured() && !$recaptcha->verify($value)) {
-                    $fail('Lütfen robot olmadığınızı doğrulayın.');
-                }
+                try {
+                    $recaptcha = new RecaptchaService();
+                    if ($recaptcha->isConfigured() && !$recaptcha->verify($value ?? '')) {
+                        $fail('Lütfen robot olmadığınızı doğrulayın.');
+                    }
+                } catch (\Exception $e) {}
             }],
             'website' => ['nullable', 'string', 'max:0'],
         ], [
