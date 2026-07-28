@@ -3,10 +3,10 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Services\RecaptchaService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Laravel\Jetstream\Jetstream;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -19,6 +19,12 @@ class CreateNewUser implements CreatesNewUsers
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => $this->passwordRules(),
             'birth_date' => ['required', 'date', 'before_or_equal:' . now()->subYears(13)->format('Y-m-d')],
+            'g-recaptcha-response' => [function ($attr, $value, $fail) {
+                $recaptcha = new RecaptchaService();
+                if ($recaptcha->isConfigured() && !$recaptcha->verify($value)) {
+                    $fail('Lütfen robot olmadığınızı doğrulayın.');
+                }
+            }],
             'website' => ['nullable', 'string', 'max:0'],
         ], [
             'birth_date.required' => 'Doğum tarihi zorunludur.',
