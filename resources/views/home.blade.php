@@ -93,5 +93,37 @@
             @endforeach
         </div>
     </div>
+
+    {{-- Latest Blog Posts --}}
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-white">📝 Blog</h2>
+            <a href="{{ url('/blog') }}" class="text-sm text-rose-400 hover:text-rose-300 transition">Tüm Yazılar →</a>
+        </div>
+        @php $latestPosts = \App\Models\Post::where('is_published', true)->latest()->take(6)->get(); @endphp
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            @foreach($latestPosts as $post)
+                <a href="{{ url('/blog/' . $post->slug) }}" class="group bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition">
+                    <div class="aspect-[16/9] bg-gray-800 overflow-hidden">
+                        @if($post->image_url)
+                            <img src="{{ $post->image_url }}" alt="{{ $post->title }}" loading="lazy"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-700">📝</div>
+                        @endif
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-rose-600/10 text-rose-400 text-[10px] rounded-full">{{ $post->category }}</span>
+                            <span class="text-gray-600 text-[10px]">{{ $post->read_time }} dk</span>
+                        </div>
+                        <h3 class="text-white font-medium text-sm line-clamp-2 group-hover:text-rose-400 transition">{{ $post->title }}</h3>
+                        <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ $post->excerpt }}</p>
+                        <p class="text-gray-600 text-[10px] mt-2">{{ $post->published_at->format('d.m.Y') }}</p>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+    </div>
 </div>
 @endsection
