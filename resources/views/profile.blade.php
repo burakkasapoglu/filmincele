@@ -44,7 +44,7 @@ function copyToClipboard(text) {
     <div class="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 mb-6">
         <div class="flex flex-col sm:flex-row items-start gap-5">
             <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-800 flex-shrink-0">
-                <img src="{{ $user->profile_photo_url }}" class="w-full h-full object-cover">
+                <x-avatar :user="$user" class="w-full h-full object-cover" size="w-24 h-24" />
             </div>
             <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between flex-wrap gap-3">

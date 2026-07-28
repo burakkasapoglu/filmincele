@@ -8,7 +8,7 @@
         <h2 class="text-white font-semibold mb-4">Profil Fotoğrafı</h2>
         <div class="flex items-center gap-5">
             <div class="w-20 h-20 rounded-2xl overflow-hidden bg-gray-800 flex-shrink-0">
-                <img src="{{ Auth::user()->profile_photo_url }}" class="w-full h-full object-cover">
+                <x-avatar size="w-20 h-20" />
             </div>
             <div>
                 <input type="file" wire:model="photo" accept="image/*" class="text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-gray-700 file:text-white hover:file:bg-gray-600">

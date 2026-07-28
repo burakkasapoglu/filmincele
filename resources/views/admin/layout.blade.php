@@ -31,9 +31,7 @@
 
             <div class="px-4 mb-4">
                 <div class="flex items-center gap-3 bg-gray-800/50 rounded-xl p-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </div>
+                    <x-avatar size="w-10 h-10" textSize="text-sm" class="rounded-xl" />
                     <div class="min-w-0">
                         <p class="text-white text-sm font-medium truncate">{{ Auth::user()->name }}</p>
                         <p class="text-rose-400 text-xs">Yönetici</p>

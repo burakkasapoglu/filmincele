@@ -97,9 +97,7 @@
                     </div>
                     @auth
                         <a href="{{ url('/profil') }}" class="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition">
-                            <div class="w-8 h-8 rounded-full bg-rose-600 flex items-center justify-center text-xs font-semibold">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                            </div>
+                            <x-avatar size="w-8 h-8" textSize="text-[10px]" class="rounded-full" />
                             <span class="hidden sm:inline">Profil</span>
                         </a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
