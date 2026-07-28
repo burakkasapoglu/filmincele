@@ -43,9 +43,7 @@ function copyToClipboard(text) {
     {{-- Header Card --}}
     <div class="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 mb-6">
         <div class="flex flex-col sm:flex-row items-start gap-5">
-            <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-800 flex-shrink-0">
-                <x-avatar :user="$user" class="w-full h-full object-cover" size="w-24 h-24" />
-            </div>
+            <x-avatar :user="$user" size="w-24 h-24" />
             <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between flex-wrap gap-3">
                     <div>
