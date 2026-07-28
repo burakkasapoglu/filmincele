@@ -75,6 +75,11 @@ Route::get('/kvkk', function () {
     return view('kvkk');
 })->name('kvkk');
 
+Route::get('/liste/{token}', function (string $token) {
+    $list = \App\Models\Watchlist::where('share_token', $token)->with(['user', 'movies'])->firstOrFail();
+    return view('shared-list', ['list' => $list]);
+})->name('shared-list');
+
 Route::get('/google{code}.html', function (string $code) {
     $verification = env('GOOGLE_SEARCH_CONSOLE', '');
     if ($code === $verification || $code === '/' . $verification) {

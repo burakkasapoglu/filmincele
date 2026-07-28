@@ -1,6 +1,17 @@
 @extends('layouts.app')
 @section('title', 'Profilim — Filmincele')
 
+@push('scripts')
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => alert('Link kopyalandı! 📋'));
+}
+</script>
+@endpush
+
+@section('content')
+<div class="max-w-5xl mx-auto px-4 py-8">
+
 @section('content')
 <div class="max-w-5xl mx-auto px-4 py-8">
     @php
@@ -111,6 +122,12 @@
                             <div>
                                 <h3 class="text-white font-medium">{{ $list->name }}</h3>
                                 <p class="text-gray-500 text-xs">{{ $list->movies->count() }} film</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if($list->share_token)
+                                    <button onclick="copyToClipboard('{{ url('/liste/' . $list->share_token) }}')"
+                                            class="text-xs text-gray-500 hover:text-rose-400 transition" title="Linki kopyala">🔗</button>
+                                @endif
                             </div>
                         </div>
                         @if($list->movies->count())
