@@ -40,31 +40,31 @@ function copyToClipboard(text) {
         if ($user->location) $badges[] = 'location_set';
     @endphp
 
-    {{-- Header Card --}}
-    <div class="bg-gray-900 rounded-2xl border border-gray-800/50 p-6 mb-6">
-        <div class="flex flex-col sm:flex-row items-start gap-5">
-            <x-avatar :user="$user" size="w-24 h-24" />
+    {{-- Header --}}
+    <div class="relative overflow-hidden bg-gradient-to-br from-rose-900/30 via-gray-950 to-purple-900/20 border-b border-gray-800 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-10 mb-6">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-start gap-6">
+            <x-avatar :user="$user" size="w-28 h-28" />
             <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between flex-wrap gap-3">
                     <div>
-                        <h1 class="text-2xl font-bold text-white">{{ $user->name }}</h1>
+                        <h1 class="text-3xl font-bold text-white">{{ $user->name }}</h1>
                         <p class="text-gray-400 text-sm">{{ $user->email }}</p>
                         @if($user->location)
-                            <p class="text-gray-500 text-xs mt-0.5">📍 {{ $user->location }}</p>
+                            <p class="text-gray-500 text-xs mt-1">📍 {{ $user->location }}</p>
                         @endif
                         @if($user->website)
                             <a href="{{ $user->website }}" target="_blank" class="text-rose-400 text-xs hover:underline mt-0.5 block">🔗 {{ parse_url($user->website, PHP_URL_HOST) }}</a>
                         @endif
                     </div>
-                    <a href="{{ url('/profil/duzenle') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-xl transition">✏️ Düzenle</a>
+                    <a href="{{ url('/profil/duzenle') }}" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-xl transition backdrop-blur-sm">✏️ Düzenle</a>
                 </div>
                 @if($user->bio)
-                    <p class="text-gray-400 text-sm mt-3 leading-relaxed">{{ $user->bio }}</p>
+                    <p class="text-gray-300 text-sm mt-3 leading-relaxed max-w-xl">{{ $user->bio }}</p>
                 @endif
-                <div class="mt-4 flex items-center gap-2">
-                    <span class="text-xs text-gray-500">Profil gücü</span>
-                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden max-w-xs">
-                        <div class="h-full rounded-full transition-all {{ $strength >= 80 ? 'bg-emerald-500' : ($strength >= 40 ? 'bg-yellow-500' : 'bg-rose-500') }}" style="width: {{ $strength }}%"></div>
+                <div class="mt-4 flex items-center gap-2 max-w-xs">
+                    <span class="text-xs text-gray-400">Profil gücü</span>
+                    <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full {{ $strength >= 80 ? 'bg-emerald-400' : ($strength >= 40 ? 'bg-yellow-400' : 'bg-rose-400') }}" style="width: {{ $strength }}%"></div>
                     </div>
                     <span class="text-xs font-medium {{ $strength >= 80 ? 'text-emerald-400' : ($strength >= 40 ? 'text-yellow-400' : 'text-rose-400') }}">{{ $strength }}%</span>
                 </div>
