@@ -113,5 +113,23 @@
             @endif
         </div>
     </div>
+
+    {{-- Top Pages --}}
+    <div class="mt-6 bg-gray-900 rounded-2xl border border-gray-800/50 p-5">
+        <h2 class="text-white font-semibold mb-3">📄 En Çok Ziyaret Edilen Sayfalar (7 gün)</h2>
+        @if($topPages->count())
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                @foreach($topPages as $page)
+                    <div class="flex items-center gap-3 px-3 py-2 hover:bg-gray-800/30 rounded-lg transition">
+                        <span class="text-gray-500 text-xs w-5">{{ $loop->iteration }}.</span>
+                        <span class="text-white text-xs flex-1 truncate font-mono">{{ $page->url }}</span>
+                        <span class="text-violet-400 text-xs font-medium">{{ $page->count }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="text-gray-500 text-sm py-4 text-center">Henüz veri yok</p>
+        @endif
+    </div>
 </div>
 @endsection

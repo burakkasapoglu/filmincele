@@ -49,6 +49,10 @@ class AdminController extends Controller
             'topBlogPosts' => PageView::selectRaw('url, COUNT(*) as count')
                 ->where('url', 'like', '/blog/%')->where('url', 'not like', '/blog?%')
                 ->groupBy('url')->orderByDesc('count')->take(10)->get(),
+            'topPages' => PageView::selectRaw('url, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subDays(7))
+                ->whereNotIn('url', ['/livewire/update', '/'])
+                ->groupBy('url')->orderByDesc('count')->take(15)->get(),
             'topRated' => Rating::selectRaw('movie_id, AVG(rating) as avg, COUNT(*) as count')
                 ->with('movie')->groupBy('movie_id')->orderByDesc('count')->take(10)->get(),
             'popularGenres' => $this->getPopularGenres(),
