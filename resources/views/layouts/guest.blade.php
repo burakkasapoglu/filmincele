@@ -14,7 +14,6 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-20CZKHTLS5"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}

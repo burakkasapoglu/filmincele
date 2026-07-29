@@ -58,10 +58,6 @@
             @endif
 
             <div class="flex items-center justify-end mt-4">
-                @php $recaptcha = new \App\Services\RecaptchaService(); @endphp
-                @if($recaptcha->isConfigured())
-                    <div class="g-recaptcha mr-auto" data-sitekey="{{ $recaptcha->siteKey() }}"></div>
-                @endif
                 <x-button class="ms-4">
                     Kayıt Ol
                 </x-button>
