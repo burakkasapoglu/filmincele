@@ -71,9 +71,20 @@ class TmdbService
 
     public function getMovieDetails(int $movieId): ?array
     {
-        return $this->fetch('/movie/' . $movieId, [
-            'append_to_response' => 'videos,credits,recommendations',
+        $data = $this->fetch('/movie/' . $movieId, [
+            'append_to_response' => 'videos,credits,recommendations,release_dates',
         ]);
+
+        if ($data && !empty($data['release_dates']['results'])) {
+            foreach ($data['release_dates']['results'] as $country) {
+                if ($country['iso_3166_1'] === 'TR' && !empty($country['release_dates'])) {
+                    $data['tr_release_date'] = $country['release_dates'][0]['release_date'];
+                    break;
+                }
+            }
+        }
+
+        return $data;
     }
 
     public function getMovieCredits(int $movieId): ?array

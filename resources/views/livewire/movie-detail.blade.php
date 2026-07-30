@@ -51,8 +51,9 @@
                             <p class="text-gray-400 text-lg mb-3">{{ $movie['original_title'] }}</p>
                         @endif
                         <div class="flex items-center gap-4 text-sm text-gray-300 flex-wrap">
-                            @if($movie['release_date'])
-                                <span>{{ substr($movie['release_date'], 0, 4) }}</span>
+                            @php $displayDate = $movie['tr_release_date'] ?? $movie['release_date'] ?? null; @endphp
+                            @if($displayDate)
+                                <span>{{ substr($displayDate, 0, 4) }}</span>
                                 <span>·</span>
                             @endif
                             @if($movie['runtime'])
@@ -235,10 +236,11 @@
                     {{-- Info --}}
                     <div class="bg-gray-900 rounded-xl p-6 space-y-3">
                         <h3 class="text-white font-semibold">Bilgiler</h3>
-                        @if($movie['release_date'])
+                        @php $displayDate = $movie['tr_release_date'] ?? $movie['release_date'] ?? null; @endphp
+                        @if($displayDate)
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Çıkış Tarihi</span>
-                                <span class="text-white">{{ \Carbon\Carbon::parse($movie['release_date'])->format('d.m.Y') }}</span>
+                                <span class="text-white">{{ \Carbon\Carbon::parse($displayDate)->format('d.m.Y') }}</span>
                             </div>
                         @endif
                         @if($movie['runtime'])
