@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin
-Disallow: /profil
-Disallow: /giris
-Disallow: /kayit
-
-Sitemap: https://filmincele.com/sitemap_index.xml
