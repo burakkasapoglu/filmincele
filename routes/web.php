@@ -71,7 +71,9 @@ Route::get('/kayit', function () {
     return view('auth.register');
 });
 
-Route::get('/kvkk', function () {
+Route::get('/robots.txt', function () {
+    return response("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /profil\nDisallow: /giris\nDisallow: /kayit\n\nSitemap: " . url('/sitemap_index.xml'), 200)->header('Content-Type', 'text/plain');
+});
     return view('kvkk');
 })->name('kvkk');
 
