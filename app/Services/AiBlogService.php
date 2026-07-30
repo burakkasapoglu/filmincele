@@ -21,53 +21,75 @@ class AiBlogService
 
     public function generateBlogPost(string $topic): ?array
     {
-        if (!$this->isConfigured()) return null;
+        $result = null;
 
-        $prompt = "Sen bir sinema blog yazarısın. Türkçe olarak \"{$topic}\" konusunda SEO uyumlu, ilgi çekici bir blog yazısı yaz.
+        if ($this->isConfigured()) {
+            $result = $this->tryGemini($topic);
+        }
 
-Yanıtını JSON formatında ver:
-{
-  \"title\": \"Blog başlığı (max 80 karakter)\",
-  \"excerpt\": \"Kısa özet (max 150 karakter)\",
-  \"body\": \"Markdown formatında blog içeriği. Başlıklar için ## kullan. Film isimleri için **[Film Adı](/film/tmdb_id-fim-adi)** formatını kullan.\",
-  \"category\": \"Kategori (Liste, Haber, Analiz, Rehber, Eğlence, Tartışma)\",
-  \"image_query\": \"Görsel araması için İngilizce 2-3 kelimelik anahtar kelime\"
-}
+        return $result ?? $this->generateFallback($topic);
+    }
 
-Kurallar:
-- Başlık dikkat çekici olsun
-- En az 4-5 paragraf yaz
-- Film/dizi isimlerini **[Film Adı](/film/ID-slug)** formatında linkle
-- Kategori uygun olsun
-- SEO için anahtar kelimeler kullan
-- SADECE JSON döndür, başka metin ekleme";
+    private function tryGemini(string $topic): ?array
+    {
+        $prompt = "Sen bir sinema blog yazarısın. \"{$topic}\" konusunda SEO uyumlu, ilgi çekici bir Türkçe blog yazısı yaz. Yanıtını JSON formatında ver: {\"title\": \"Başlık\", \"excerpt\": \"Kısa özet\", \"body\": \"Markdown içerik\", \"category\": \"Liste|Haber|Analiz|Rehber\"}. SADECE JSON döndür.";
 
         try {
-            $response = Http::timeout(30)->post($this->baseUrl . '?key=' . $this->apiKey, [
-                'contents' => [[
-                    'parts' => [['text' => $prompt]]
-                ]],
-                'generationConfig' => [
-                    'temperature' => 0.8,
-                    'maxOutputTokens' => 2048,
-                ],
+            $response = Http::timeout(25)->post($this->baseUrl . '?key=' . $this->apiKey, [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 1500],
             ]);
 
             if (!$response->successful()) return null;
 
-            $data = $response->json();
-            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $text = $response->json('candidates.0.content.parts.0.text');
             if (!$text) return null;
 
             $text = trim(str_replace(['```json', '```'], '', $text));
             $result = json_decode($text, true);
 
-            if (!$result || !isset($result['title'], $result['body'])) return null;
-
-            return $result;
+            return ($result && isset($result['title'], $result['body'])) ? $result : null;
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    private function generateFallback(string $topic): array
+    {
+        $tmdb = app(TmdbService::class);
+        $movies = array_merge(
+            $tmdb->searchMovies($topic),
+            $tmdb->getPopularMovies()
+        );
+        $movies = array_slice($movies, 0, 8);
+
+        $title = trim($topic) . ' Hakkında Bilmeniz Gerekenler';
+        $excerpt = '"' . trim($topic) . '" konusunda en iyi filmler, detaylı inceleme ve öneriler.';
+
+        $body = "# {$topic} Hakkında Bilmeniz Gerekenler\n\n";
+        $body .= "Bu yazıda **{$topic}** konusunu mercek altına alıyoruz. İşte karşınızda en dikkat çekici yapımlar:\n\n";
+
+        if (!empty($movies)) {
+            foreach ($movies as $i => $movie) {
+                $mTitle = $movie['title'] ?? $movie['name'] ?? '';
+                $body .= ($i + 1) . ". **[$mTitle](/film/{$movie['id']}-" . \Illuminate\Support\Str::slug($mTitle) . ")** ";
+                $body .= "— ★ " . number_format($movie['vote_average'] ?? 0, 1) . "\n";
+                if (!empty($movie['overview'])) {
+                    $body .= \Illuminate\Support\Str::limit($movie['overview'], 120) . "\n";
+                }
+                $body .= "\n";
+            }
+        }
+
+        $body .= "Daha fazla film keşfetmek için [ana sayfamızı](/) ziyaret edin! 🎬";
+
+        return [
+            'title' => $title,
+            'excerpt' => $excerpt,
+            'body' => $body,
+            'category' => 'Liste',
+            'image_query' => $topic,
+        ];
     }
 
     public function searchImage(string $query): ?string
