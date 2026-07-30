@@ -12,3 +12,5 @@ public/hot
 .DS_Store
 .idea/
 .vscode/
+public/sitemap.xml
+public/sitemap_index.xml
