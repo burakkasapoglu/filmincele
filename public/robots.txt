@@ -5,4 +5,4 @@ Disallow: /profil
 Disallow: /giris
 Disallow: /kayit
 
-Sitemap: {{ url('/sitemap_index.xml') }}
+Sitemap: https://filmincele.com/sitemap_index.xml
