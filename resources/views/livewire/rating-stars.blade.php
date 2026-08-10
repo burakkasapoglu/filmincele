@@ -1,4 +1,7 @@
 <div>
+    @if($error)
+        <p class="text-red-400 text-xs mb-2">⚠️ {{ $error }}</p>
+    @endif
     <div class="flex items-center gap-1">
         @for($i = 1; $i <= 10; $i++)
             <button wire:click="setRating({{ $i }})" class="text-2xl transition duration-150 hover:scale-125

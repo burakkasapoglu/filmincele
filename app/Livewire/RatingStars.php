@@ -15,6 +15,7 @@ class RatingStars extends Component
     public ?int $userRating = null;
     public string $review = '';
     public bool $showReview = false;
+    public ?string $error = null;
     private ?int $localMovieId = null;
 
     public function mount(int $movieId): void
@@ -38,16 +39,22 @@ class RatingStars extends Component
     public function setRating(int $rating): void
     {
         if (!Auth::check()) return;
-        $this->ensureLocalMovie();
-        if (!$this->localMovieId) return;
+        
+        try {
+            $this->ensureLocalMovie();
+            if (!$this->localMovieId) return;
 
-        Rating::updateOrCreate(
-            ['user_id' => Auth::id(), 'movie_id' => $this->localMovieId],
-            ['rating' => $rating]
-        );
+            Rating::updateOrCreate(
+                ['user_id' => Auth::id(), 'movie_id' => $this->localMovieId],
+                ['rating' => $rating]
+            );
 
-        $this->userRating = $rating;
-        $this->showReview = true;
+            $this->userRating = $rating;
+            $this->showReview = true;
+            $this->error = null;
+        } catch (\Exception $e) {
+            $this->error = 'Puan kaydedilemedi. Lütfen daha sonra tekrar deneyin.';
+        }
     }
 
     public function saveReview(): void
@@ -55,65 +62,73 @@ class RatingStars extends Component
         if (!Auth::check()) return;
         if (!$this->localMovieId) return;
 
-        Rating::updateOrCreate(
-            ['user_id' => Auth::id(), 'movie_id' => $this->localMovieId],
-            ['review' => $this->review]
-        );
-
-        $this->showReview = false;
+        try {
+            Rating::updateOrCreate(
+                ['user_id' => Auth::id(), 'movie_id' => $this->localMovieId],
+                ['review' => $this->review]
+            );
+            $this->showReview = false;
+            $this->error = null;
+        } catch (\Exception $e) {
+            $this->error = 'Yorum kaydedilemedi. Lütfen daha sonra tekrar deneyin.';
+        }
     }
 
     private function ensureLocalMovie(): void
     {
-        $localMovie = Movie::where('tmdb_id', $this->tmdbId)->first();
-        if ($localMovie) {
-            $this->localMovieId = $localMovie->id;
-            return;
-        }
+        try {
+            $localMovie = Movie::where('tmdb_id', $this->tmdbId)->first();
+            if ($localMovie) {
+                $this->localMovieId = $localMovie->id;
+                return;
+            }
 
-        $tmdb = app(TmdbService::class);
+            $tmdb = app(TmdbService::class);
 
-        if ($this->mediaType === 'tv') {
-            $data = $tmdb->getTVDetails($this->tmdbId);
+            if ($this->mediaType === 'tv') {
+                $data = $tmdb->getTVDetails($this->tmdbId);
+                if (!$data) return;
+                $localMovie = Movie::firstOrCreate(
+                    ['tmdb_id' => $this->tmdbId],
+                    [
+                        'title' => $data['name'] ?? '',
+                        'title_original' => $data['original_name'] ?? '',
+                        'overview' => $data['overview'] ?? '',
+                        'poster_path' => $data['poster_path'] ?? '',
+                        'backdrop_path' => $data['backdrop_path'] ?? '',
+                        'release_date' => $data['first_air_date'] ?? null,
+                        'vote_average' => $data['vote_average'] ?? 0,
+                        'vote_count' => $data['vote_count'] ?? 0,
+                        'popularity' => $data['popularity'] ?? 0,
+                    ]
+                );
+                $this->localMovieId = $localMovie->id;
+                return;
+            }
+
+            $data = $tmdb->getMovieDetails($this->tmdbId);
             if (!$data) return;
+
             $localMovie = Movie::firstOrCreate(
                 ['tmdb_id' => $this->tmdbId],
                 [
-                    'title' => $data['name'] ?? '',
-                    'title_original' => $data['original_name'] ?? '',
+                    'title' => $data['title'] ?? '',
+                    'title_original' => $data['original_title'] ?? '',
                     'overview' => $data['overview'] ?? '',
                     'poster_path' => $data['poster_path'] ?? '',
                     'backdrop_path' => $data['backdrop_path'] ?? '',
-                    'release_date' => $data['first_air_date'] ?? null,
+                    'release_date' => $data['release_date'] ?? null,
+                    'runtime' => $data['runtime'] ?? null,
                     'vote_average' => $data['vote_average'] ?? 0,
                     'vote_count' => $data['vote_count'] ?? 0,
                     'popularity' => $data['popularity'] ?? 0,
                 ]
             );
+
             $this->localMovieId = $localMovie->id;
-            return;
+        } catch (\Exception $e) {
+            // DB write blocked — can't cache movie info
         }
-
-        $data = $tmdb->getMovieDetails($this->tmdbId);
-        if (!$data) return;
-
-        $localMovie = Movie::firstOrCreate(
-            ['tmdb_id' => $this->tmdbId],
-            [
-                'title' => $data['title'] ?? '',
-                'title_original' => $data['original_title'] ?? '',
-                'overview' => $data['overview'] ?? '',
-                'poster_path' => $data['poster_path'] ?? '',
-                'backdrop_path' => $data['backdrop_path'] ?? '',
-                'release_date' => $data['release_date'] ?? null,
-                'runtime' => $data['runtime'] ?? null,
-                'vote_average' => $data['vote_average'] ?? 0,
-                'vote_count' => $data['vote_count'] ?? 0,
-                'popularity' => $data['popularity'] ?? 0,
-            ]
-        );
-
-        $this->localMovieId = $localMovie->id;
     }
 
     public function render()
