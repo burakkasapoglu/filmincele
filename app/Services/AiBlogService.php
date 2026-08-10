@@ -63,11 +63,16 @@ class AiBlogService
         );
         $movies = array_slice($movies, 0, 8);
 
-        $title = trim($topic) . ' Hakkında Bilmeniz Gerekenler';
-        $excerpt = '"' . trim($topic) . '" konusunda en iyi filmler, detaylı inceleme ve öneriler.';
+        $cleanTopic = trim($topic);
+        $title = ucfirst($cleanTopic);
+        if (mb_strlen($title) > 70) {
+            $title = mb_substr($title, 0, 67) . '...';
+        }
 
-        $body = "# {$topic} Hakkında Bilmeniz Gerekenler\n\n";
-        $body .= "Bu yazıda **{$topic}** konusunu mercek altına alıyoruz. İşte karşınızda en dikkat çekici yapımlar:\n\n";
+        $excerpt = "\"{$cleanTopic}\" konusunda özenle seçilmiş en iyi film ve dizileri sizin için listeledik.";
+
+        $body = "# {$title}\n\n";
+        $body .= "**{$cleanTopic}** denince akla gelen en iyi yapımları sizin için derledik. İşte mutlaka izlenmesi gerekenler:\n\n";
 
         if (!empty($movies)) {
             foreach ($movies as $i => $movie) {
@@ -75,7 +80,7 @@ class AiBlogService
                 $body .= ($i + 1) . ". **[$mTitle](/film/{$movie['id']}-" . \Illuminate\Support\Str::slug($mTitle) . ")** ";
                 $body .= "— ★ " . number_format($movie['vote_average'] ?? 0, 1) . "\n";
                 if (!empty($movie['overview'])) {
-                    $body .= \Illuminate\Support\Str::limit($movie['overview'], 120) . "\n";
+                    $body .= \Illuminate\Support\Str::limit($movie['overview'], 150) . "\n";
                 }
                 $body .= "\n";
             }
@@ -88,7 +93,7 @@ class AiBlogService
             'excerpt' => $excerpt,
             'body' => $body,
             'category' => 'Liste',
-            'image_query' => $topic,
+            'image_query' => $cleanTopic,
         ];
     }
 
