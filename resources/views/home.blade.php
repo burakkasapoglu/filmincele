@@ -30,12 +30,17 @@
         @php
             $recService = app(\App\Services\RecommendationService::class);
             $recommendations = $recService->getForUser(Auth::user(), 12);
-            $hasHistory = Auth::user()->ratings()->count() > 0 || Auth::user()->watchlists()->has('movies')->exists();
         @endphp
-        @if(!empty($recommendations) && $hasHistory)
+        @if(!empty($recommendations))
             <div class="max-w-7xl mx-auto px-4 py-8">
                 <h2 class="text-xl font-bold text-white mb-1">🎯 Senin İçin Öneriler</h2>
-                <p class="text-gray-500 text-sm mb-5">Puanların ve listen temel alınarak seçildi</p>
+                <p class="text-gray-500 text-sm mb-5">
+                    @if(Auth::user()->ratings()->count() > 0)
+                        Puanların ve listen temel alınarak seçildi
+                    @else
+                        Başlamak için popüler seçkiler — birkaç film puanla, sana özel öneriler gelsin!
+                    @endif
+                </p>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     @foreach($recommendations as $movie)
                         <a href="{{ film_url($movie['id'], $movie['title'] ?? '') }}" class="group block">
