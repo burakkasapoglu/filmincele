@@ -119,7 +119,16 @@ function copyToClipboard(text) {
                         <div class="flex items-center justify-between mb-3">
                             <div>
                                 <h3 class="text-white font-medium">{{ $list->name }}</h3>
-                                <p class="text-gray-500 text-xs">{{ $list->movies->count() }} film</p>
+                                <p class="text-gray-500 text-xs">
+                                    {{ $list->movies->count() }} içerik
+                                    @php
+                                        $tvCount = $list->movies->where('type', 'tv')->count();
+                                        $movieCount = $list->movies->where('type', 'movie')->count();
+                                    @endphp
+                                    @if($tvCount > 0 && $movieCount > 0)
+                                        ({{ $movieCount }} film · {{ $tvCount }} dizi)
+                                    @endif
+                                </p>
                             </div>
                             <div class="flex items-center gap-2">
                                 @if($list->share_token)
@@ -131,13 +140,16 @@ function copyToClipboard(text) {
                         @if($list->movies->count())
                             <div class="flex gap-3 overflow-x-auto pb-2">
                                 @foreach($list->movies as $movie)
-                                    <a href="{{ url('/film/' . $movie->tmdb_id . '-' . \Illuminate\Support\Str::slug($movie->title ?? '')) }}" class="flex-shrink-0 w-20 group">
-                                        <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-1">
+                                    <a href="{{ $movie->isTv() ? dizi_url($movie->tmdb_id, $movie->title) : film_url($movie->tmdb_id, $movie->title) }}" class="flex-shrink-0 w-20 group">
+                                        <div class="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-1">
                                             @if($movie->poster_path)
                                                 <img src="https://image.tmdb.org/t/p/w154{{ $movie->poster_path }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
                                             @else
-                                                <div class="w-full h-full flex items-center justify-center text-xl text-gray-600">🎬</div>
+                                                <div class="w-full h-full flex items-center justify-center text-xl text-gray-600">{{ $movie->isTv() ? '📺' : '🎬' }}</div>
                                             @endif
+                                            <div class="absolute top-1 left-1">
+                                                <span class="px-1 py-0.5 bg-black/60 backdrop-blur-sm rounded text-[8px] text-white">{{ $movie->isTv() ? 'Dizi' : 'Film' }}</span>
+                                            </div>
                                         </div>
                                         <p class="text-white text-[10px] leading-tight line-clamp-2 group-hover:text-rose-400 transition">{{ $movie->title }}</p>
                                     </a>

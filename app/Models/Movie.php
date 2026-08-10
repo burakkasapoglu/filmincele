@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class Movie extends Model
 {
     protected $fillable = [
-        'tmdb_id', 'title', 'title_original', 'overview',
+        'tmdb_id', 'type', 'title', 'title_original', 'overview',
         'poster_path', 'backdrop_path', 'release_date', 'runtime',
         'vote_average', 'vote_count', 'popularity', 'slug',
     ];
@@ -55,6 +55,11 @@ class Movie extends Model
     public function ratings()
     {
         return $this->hasMany(Rating::class);
+    }
+
+    public function isTv(): bool
+    {
+        return $this->type === 'tv';
     }
 
     public function avgRating(): float

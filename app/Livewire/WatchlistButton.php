@@ -130,6 +130,7 @@ class WatchlistButton extends Component
             return Movie::firstOrCreate(
                 ['tmdb_id' => $this->tmdbId],
                 [
+                    'type' => 'tv',
                     'title' => $data['name'] ?? '',
                     'title_original' => $data['original_name'] ?? '',
                     'overview' => $data['overview'] ?? '',
@@ -149,6 +150,7 @@ class WatchlistButton extends Component
         return Movie::firstOrCreate(
             ['tmdb_id' => $this->tmdbId],
             [
+                'type' => 'movie',
                 'title' => $data['title'] ?? '',
                 'title_original' => $data['original_title'] ?? '',
                 'overview' => $data['overview'] ?? '',
