@@ -32,7 +32,9 @@ class TrackPageViews
                     'movie_id' => $movieId,
                 ]);
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            // DB limit dolu veya yetki yok — sessizce devam et
+        }
 
         return $response;
     }
