@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Http;
 
 class AiBlogService
 {
-    private string $apiKey;
+    private ?string $apiKey = null;
     private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.key', '');
+        $this->apiKey = config('services.gemini.key') ?: null;
     }
 
     public function isConfigured(): bool
