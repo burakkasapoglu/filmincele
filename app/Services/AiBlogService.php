@@ -93,14 +93,23 @@ class AiBlogService
             'excerpt' => $excerpt,
             'body' => $body,
             'category' => 'Liste',
-            'image_query' => $cleanTopic,
+            'image_query' => $movies[0]['title'] ?? $cleanTopic,
         ];
     }
 
     public function searchImage(string $query): ?string
     {
         $tmdb = app(TmdbService::class);
+        
         $results = $tmdb->searchMovies($query);
+        if (empty($results)) {
+            $words = explode(' ', $query);
+            $results = $tmdb->searchMovies($words[0] ?? $query);
+        }
+        if (empty($results)) {
+            $results = $tmdb->getPopularMovies();
+        }
+        
         if (!empty($results) && isset($results[0]['poster_path'])) {
             return 'https://image.tmdb.org/t/p/w780' . $results[0]['poster_path'];
         }
