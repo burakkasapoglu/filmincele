@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
 
 class RecommendationService
 {
@@ -17,7 +18,9 @@ class RecommendationService
     public function getForUser(User $user, int $limit = 12): array
     {
         $ratedCount = $user->ratings()->count();
-        if ($ratedCount < 2) {
+        $listCount = $user->watchlists()->withCount('movies')->get()->sum('movies_count');
+
+        if ($ratedCount < 1 && $listCount < 1) {
             return $this->getPopularFallback($limit);
         }
 
@@ -29,8 +32,13 @@ class RecommendationService
 
     private function generate(User $user, int $limit): array
     {
-        $allItems = [];
+        $allItems = collect();
+        $reasons = [];
 
+        $ratedTmdbIds = $this->getRatedTmdbIds($user);
+        $watchlistTmdbIds = $this->getWatchlistTmdbIds($user);
+
+        // 1. High-rated movies → TMDB similar (highest weight, most relevant)
         $topRated = $user->ratings()
             ->with('movie')
             ->where('rating', '>=', 7)
@@ -40,51 +48,102 @@ class RecommendationService
 
         foreach ($topRated as $rating) {
             $tmdbId = $rating->movie->tmdb_id ?? null;
+            $title = $rating->movie->title ?? '';
             if (!$tmdbId) continue;
 
             $similar = $this->tmdb->getMovieRecommendations($tmdbId);
-            $allItems = array_merge($allItems, array_slice($similar, 0, 5));
-        }
-
-        if (count($allItems) < $limit) {
-            $favoriteGenreIds = $user->favoriteGenres()->pluck('genres.tmdb_id')->toArray();
-            if (empty($favoriteGenreIds)) {
-                $genreIds = $this->getTopRatedGenreIds($user);
-            } else {
-                $genreIds = $favoriteGenreIds;
-            }
-
-            if (!empty($genreIds)) {
-                $genreMovies = $this->tmdb->discoverByGenres(array_slice($genreIds, 0, 3), rand(1, 5));
-                $allItems = array_merge($allItems, $genreMovies);
+            foreach (array_slice($similar, 0, 4) as $m) {
+                $m['_reason'] = "Çünkü \"{$title}\" filmini puanladın";
+                $m['_weight'] = 10;
+                $allItems->push($m);
             }
         }
 
-        if (count($allItems) < $limit) {
-            $allItems = array_merge($allItems, $this->tmdb->getPopularMovies(rand(1, 3)));
+        // 2. Recently watchlisted → TMDB similar
+        $watchlistMovies = $user->watchlists()
+            ->with(['movies' => function($q) { $q->latest('watchlist_movie.added_at')->take(3); }])
+            ->get()
+            ->pluck('movies')
+            ->flatten()
+            ->unique('id')
+            ->take(3);
+
+        foreach ($watchlistMovies as $movie) {
+            $similar = $this->tmdb->getMovieRecommendations($movie->tmdb_id);
+            foreach (array_slice($similar, 0, 3) as $m) {
+                $m['_reason'] = "Çünkü \"{$movie->title}\" listende var";
+                $m['_weight'] = 7;
+                $allItems->push($m);
+            }
         }
 
-        $ratedTmdbIds = $user->ratings()
+        // 3. Favorite genres → discover popular
+        $favoriteGenreIds = $user->favoriteGenres()->pluck('tmdb_id')->toArray();
+        if (empty($favoriteGenreIds)) {
+            $favoriteGenreIds = $this->getTopRatedGenreIds($user);
+        }
+
+        if (!empty($favoriteGenreIds)) {
+            $genreMovies = $this->tmdb->discoverByGenres(array_slice($favoriteGenreIds, 0, 3), rand(1, 4), 'popularity.desc');
+            foreach ($genreMovies as $m) {
+                $m['_reason'] = 'Sevdiğin türlerden bir seçki';
+                $m['_weight'] = 3;
+                $allItems->push($m);
+            }
+        }
+
+        // 4. Pad with popular if not enough
+        if ($allItems->count() < $limit) {
+            $popular = collect($this->tmdb->getPopularMovies(rand(1, 4)));
+            foreach ($popular as $m) {
+                $m['_reason'] = 'Popüler öneri';
+                $m['_weight'] = 1;
+                $allItems->push($m);
+            }
+        }
+
+        // Deduplicate, exclude already engaged content, sort by weight
+        $excludeIds = array_merge($ratedTmdbIds, $watchlistTmdbIds);
+        $seen = [];
+        $unique = $allItems
+            ->filter(function ($item) use (&$seen, $excludeIds) {
+                $id = $item['id'] ?? 0;
+                if (!$id || in_array($id, $seen) || in_array($id, $excludeIds)) return false;
+                $seen[] = $id;
+                return true;
+            })
+            ->sortByDesc('_weight')
+            ->take($limit)
+            ->values()
+            ->toArray();
+
+        return $unique;
+    }
+
+    private function getRatedTmdbIds(User $user): array
+    {
+        return $user->ratings()
             ->whereHas('movie')
             ->with('movie')
             ->get()
             ->pluck('movie.tmdb_id')
             ->filter()
+            ->values()
             ->toArray();
+    }
 
-        $seen = [];
-        $unique = [];
-        foreach ($allItems as $item) {
-            $id = $item['id'] ?? 0;
-            if ($id && !in_array($id, $seen) && !in_array($id, $ratedTmdbIds)) {
-                $seen[] = $id;
-                $unique[] = $item;
-            }
-            if (count($unique) >= $limit) break;
-        }
-
-        shuffle($unique);
-        return $unique;
+    private function getWatchlistTmdbIds(User $user): array
+    {
+        return $user->watchlists()
+            ->with('movies')
+            ->get()
+            ->pluck('movies')
+            ->flatten()
+            ->pluck('tmdb_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     private function getTopRatedGenreIds(User $user): array
@@ -106,17 +165,12 @@ class RecommendationService
     private function getPopularFallback(int $limit): array
     {
         return Cache::remember('popular_fallback', 3600, function () use ($limit) {
-            return $this->tmdb->getPopularMovies(rand(1, 3));
+            $movies = $this->tmdb->getPopularMovies(rand(1, 3));
+            foreach ($movies as &$m) {
+                $m['_reason'] = 'Popüler öneri';
+                $m['_weight'] = 1;
+            }
+            return array_slice($movies, 0, $limit);
         });
-    }
-
-    public function getForMovie(int $tmdbId, int $limit = 8): array
-    {
-        return array_slice($this->tmdb->getMovieRecommendations($tmdbId), 0, $limit);
-    }
-
-    public function getTrendingInGenre(array $genreIds, int $limit = 8): array
-    {
-        return array_slice($this->tmdb->discoverByGenres($genreIds), 0, $limit);
     }
 }
