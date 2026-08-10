@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 class AiBlogService
 {
     private ?string $apiKey = null;
-    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
     public function __construct()
     {
