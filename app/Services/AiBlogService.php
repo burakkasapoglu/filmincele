@@ -32,7 +32,7 @@ class AiBlogService
 
     private function tryGemini(string $topic): ?array
     {
-        $prompt = "Sen bir sinema blog yazarısın. \"{$topic}\" konusunda SEO uyumlu, ilgi çekici bir Türkçe blog yazısı yaz. Yanıtını JSON formatında ver: {\"title\": \"Başlık\", \"excerpt\": \"Kısa özet\", \"body\": \"Markdown içerik\", \"category\": \"Liste|Haber|Analiz|Rehber\"}. SADECE JSON döndür.";
+        $prompt = "Sen sinema blog yazari. KISA yaz. SADECE JSON dondur, baska metin ekleme: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Haber\"}. Konu: {$topic}";
 
         try {
             $response = Http::timeout(25)->post($this->baseUrl . '?key=' . $this->apiKey, [
@@ -42,7 +42,8 @@ class AiBlogService
 
             if (!$response->successful()) return null;
 
-            $text = $response->json('candidates.0.content.parts.0.text');
+            $data = $response->json();
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
             if (!$text) return null;
 
             $text = trim(str_replace(['```json', '```'], '', $text));
