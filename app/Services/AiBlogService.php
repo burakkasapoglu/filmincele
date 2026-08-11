@@ -38,7 +38,7 @@ class AiBlogService
         try {
             $response = Http::timeout(20)->post($this->baseUrl . '?key=' . $this->apiKey, [
                 'contents' => [['parts' => [['text' => $prompt]]]],
-                'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 1500],
+                'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 4000],
             ]);
 
             if (!$response->successful()) {
@@ -75,7 +75,7 @@ class AiBlogService
         $excerpt = "\"{$cleanTopic}\" hakkında detaylı inceleme, en iyi yapımlar ve öneriler.";
 
         $body = "# {$title}\n\n";
-        $body .= "**{$cleanTopic}** hakkında kapsamlı bir inceleme hazırladık. İşte bilmeniz gerekenler ve en iyi yapımlar:\n\n";
+        $body .= "**{$cleanTopic}** hakkında kapsamlı bir inceleme hazırladık. İşte bilmeniz gereken her şey ve en iyi yapımlar:\n\n";
 
         if (!empty($movies)) {
             $body .= "## Öne Çıkan Yapımlar\n\n";
@@ -84,22 +84,44 @@ class AiBlogService
                 $slug = \Illuminate\Support\Str::slug($mTitle);
                 $year = substr($movie['release_date'] ?? '—', 0, 4);
                 $rating = number_format($movie['vote_average'] ?? 0, 1);
+                $votes = number_format($movie['vote_count'] ?? 0);
 
-                $body .= ($i + 1) . ". **[{$mTitle}](/film/{$movie['id']}-{$slug})** ({$year}) — ★ {$rating}\n";
+                $body .= "### " . ($i + 1) . ". {$mTitle} ({$year})\n\n";
+                $body .= "⭐ **IMDb Puanı:** {$rating}/10 ({$votes} oy)\n\n";
                 if (!empty($movie['overview'])) {
-                    $body .= "> " . \Illuminate\Support\Str::limit($movie['overview'], 200) . "\n";
+                    $body .= "{$movie['overview']}\n\n";
                 }
-                $body .= "\n";
             }
 
-            // Add similar/recommended from first movie
-            $firstMovieId = $movies[0]['id'] ?? null;
-            if ($firstMovieId) {
-                $similar = $tmdb->getMovieRecommendations($firstMovieId);
-                $similar = array_slice($similar, 0, 4);
+            // Best of the best section
+            $topMovie = $movies[0] ?? null;
+            if ($topMovie) {
+                $body .= "## Neden İzlemelisiniz?\n\n";
+                $body .= "Listemizin zirvesinde yer alan **{$topMovie['title']}**, {$rating} puanla kullanıcıların beğenisini kazanmış durumda. ";
+                $body .= "Bu türdeki en iyi örneklerden biri olarak kabul ediliyor.\n\n";
+
+                // Similar movies
+                $similar = $tmdb->getMovieRecommendations($topMovie['id']);
+                $similar = array_slice($similar, 0, 5);
                 if (!empty($similar)) {
-                    $body .= "## Benzer Öneriler\n\n";
+                    $body .= "## Bunları da Sevebilirsiniz\n\n";
                     foreach ($similar as $m) {
+                        $mTitle = $m['title'] ?? $m['name'] ?? '';
+                        $mSlug = \Illuminate\Support\Str::slug($mTitle);
+                        $body .= "- **[{$mTitle}](/film/{$m['id']}-{$mSlug})** — ★ " . number_format($m['vote_average'] ?? 0, 1) . "\n";
+                    }
+                    $body .= "\n";
+                }
+            }
+
+            // Trending in genre
+            $topGenres = $movies[0]['genre_ids'] ?? [];
+            if (!empty($topGenres)) {
+                $genreMovies = $tmdb->discoverByGenres(array_slice($topGenres, 0, 2), 1, 'popularity.desc');
+                $genreMovies = array_slice($genreMovies, 0, 4);
+                if (!empty($genreMovies)) {
+                    $body .= "## Aynı Türdeki Popüler Yapımlar\n\n";
+                    foreach ($genreMovies as $m) {
                         $mTitle = $m['title'] ?? $m['name'] ?? '';
                         $mSlug = \Illuminate\Support\Str::slug($mTitle);
                         $body .= "- **[{$mTitle}](/film/{$m['id']}-{$mSlug})** — ★ " . number_format($m['vote_average'] ?? 0, 1) . "\n";
@@ -109,6 +131,7 @@ class AiBlogService
             }
         }
 
+        $body .= "---\n\n";
         $body .= "Bu yapımları **Filmincele** üzerinden puanlayabilir, listelerinize ekleyebilir ve arkadaşlarınızla paylaşabilirsiniz.\n\n";
         $body .= "Daha fazlası için [ana sayfamızı](/) ve [keşfet](/kesfet) sayfamızı ziyaret edin! 🎬";
 
