@@ -33,10 +33,23 @@ class AiBlogService
 
     private function tryGemini(string $topic): ?array
     {
-        $prompt = "Sen sinema blog yazari. KISA yaz. SADECE JSON dondur, baska metin ekleme: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Haber\"}. Konu: {$topic}";
+        $today = now()->format('d.m.Y');
+        $prompt = "Sen filmincele.com.tr sinema blog yazari. Bugün tarih: {$today}.
+
+GÖREV: \"{$topic}\" konusunda SEO uyumlu, uzun ve detayli bir Turkce blog yazisi yaz.
+
+KURALLAR:
+- Baslik dikkat cekici olsun
+- En az 5-6 paragraf yaz
+- Film/dizi isimlerini **[Film Adi](/film/TMDB_ID-slug)** formatinda filmincele.com ic linkiyle ver
+- Linkler sadece filmincele.com'a olsun, baska siteye link verme (sinemablog.com, IMDB vb YASAK)
+- Kategori: Haber, Liste, Analiz, Rehber'den birini sec
+- **SADECE JSON dondur**, baska metin ekleme
+
+JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Liste\"}";
 
         try {
-            $response = Http::timeout(20)->post($this->baseUrl . '?key=' . $this->apiKey, [
+            $response = Http::timeout(30)->post($this->baseUrl . '?key=' . $this->apiKey, [
                 'contents' => [['parts' => [['text' => $prompt]]]],
                 'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 4000],
             ]);
