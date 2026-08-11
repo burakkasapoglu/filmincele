@@ -40,6 +40,11 @@ class AiBlogService
                 'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 1500],
             ]);
 
+            \Illuminate\Support\Facades\Log::info('Gemini API response', [
+                'status' => $response->status(),
+                'has_candidates' => isset($response->json()['candidates']),
+            ]);
+
             if (!$response->successful()) return null;
 
             $data = $response->json();
@@ -51,6 +56,7 @@ class AiBlogService
 
             return ($result && isset($result['title'], $result['body'])) ? $result : null;
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gemini exception: ' . $e->getMessage());
             return null;
         }
     }
