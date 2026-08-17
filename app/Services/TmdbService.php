@@ -24,9 +24,13 @@ class TmdbService
         $cacheKey = 'tmdb:' . $endpoint . ':' . md5(serialize($params));
 
         return Cache::remember($cacheKey, 3600, function () use ($endpoint, $params) {
-            $response = Http::timeout(10)
-                ->retry(2, 500)
-                ->get($this->baseUrl . $endpoint, $params);
+            try {
+                $response = Http::timeout(10)
+                    ->retry(2, 500, throw: false)
+                    ->get($this->baseUrl . $endpoint, $params);
+            } catch (\Throwable) {
+                return null;
+            }
 
             if ($response->failed()) {
                 return null;

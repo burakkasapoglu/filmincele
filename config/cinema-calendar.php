@@ -61,7 +61,7 @@ return [
     ['tmdb_id' => 37917, 'name' => 'Kristen Stewart', 'birthday' => '1990-04-09'],
     ['tmdb_id' => 8784, 'name' => 'Daniel Craig', 'birthday' => '1968-03-02'],
     ['tmdb_id' => 73457, 'name' => 'Chris Pratt', 'birthday' => '1979-06-21'],
-    ['tmdb_id' => 110363, 'name' => 'Austin Butler', 'birthday' => '1991-08-17'],
+    ['tmdb_id' => 86654, 'name' => 'Austin Butler', 'birthday' => '1991-08-17'],
     ['tmdb_id' => 1253360, 'name' => 'Sydney Sweeney', 'birthday' => '1997-09-12'],
     ['tmdb_id' => 9281, 'name' => 'Jude Law', 'birthday' => '1972-12-29'],
     ['tmdb_id' => 508, 'name' => 'Colin Firth', 'birthday' => '1960-09-10'],
