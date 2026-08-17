@@ -14,7 +14,7 @@
                     @foreach($birthdayGroups as $group)
                         <div class="mb-3 last:mb-0">
                             <span class="inline-block text-[10px] uppercase tracking-wider mb-1.5
-                                {{ $group['label'] === 'Bugün' ? 'text-rose-400 font-semibold' : 'text-gray-500' }}">
+                                {{ $group['label'] === 'Bugün' ? 'text-rose-400 font-semibold' : 'text-gray-400' }}">
                                 🎈 {{ $group['label'] }} Doğanlar
                             </span>
                             <div class="flex gap-2 overflow-x-auto pb-1">
@@ -35,7 +35,7 @@
                                             <p class="text-white text-xs font-medium truncate max-w-[100px] group-hover:text-rose-400 transition">
                                                 {{ $person['name'] }}
                                             </p>
-                                            <p class="text-gray-500 text-[10px]">
+                                            <p class="text-gray-400 text-[10px]">
                                                 {{ $person['age'] ?? '—' }} yaş
                                             </p>
                                         </div>
@@ -51,7 +51,7 @@
 
             {{-- Movie Anniversaries --}}
             <div class="lg:border-l lg:border-gray-800 lg:pl-5">
-                <span class="inline-block text-[10px] uppercase tracking-wider text-gray-500 mb-1.5">
+                <span class="inline-block text-[10px] uppercase tracking-wider text-gray-400 mb-1.5">
                     🎬 Bu Tarihte Vizyona Girenler
                 </span>
                 @if(!empty($anniversaryMovies))

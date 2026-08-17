@@ -24,5 +24,5 @@
             </button>
         </div>
     @endif
-    <p class="text-gray-500 text-sm mt-3">Kararsız kaldığında senin için rastgele seçelim</p>
+    <p class="text-gray-400 text-sm mt-3">Kararsız kaldığında senin için rastgele seçelim</p>
 </div>

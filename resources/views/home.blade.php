@@ -34,7 +34,7 @@
         @if(!empty($recommendations))
             <div class="max-w-7xl mx-auto px-4 py-8">
                 <h2 class="text-xl font-bold text-white mb-1">🎯 Senin İçin Öneriler</h2>
-                <p class="text-gray-500 text-sm mb-5">
+                <p class="text-gray-400 text-sm mb-5">
                     @if(Auth::user()->ratings()->count() > 0)
                         Puanların ve listen temel alınarak seçildi
                     @else
@@ -60,7 +60,7 @@
                                 </div>
                             </div>
                             <h3 class="text-white text-sm font-medium mt-2 truncate group-hover:text-rose-400 transition">{{ $movie['title'] }}</h3>
-                            <p class="text-gray-500 text-xs">{{ substr($movie['release_date'] ?? '—', 0, 4) }}</p>
+                            <p class="text-gray-400 text-xs">{{ substr($movie['release_date'] ?? '—', 0, 4) }}</p>
                             @if($movie['_reason'] ?? null)
                                 <p class="text-rose-400/60 text-[10px] mt-0.5 truncate">{{ $movie['_reason'] }}</p>
                             @endif
@@ -132,7 +132,7 @@
                             <span class="text-gray-400 text-[10px]">{{ $post->read_time }} dk</span>
                         </div>
                         <h3 class="text-white font-medium text-sm line-clamp-2 group-hover:text-rose-400 transition">{{ $post->title }}</h3>
-                        <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ $post->excerpt }}</p>
+                        <p class="text-gray-400 text-xs mt-1 line-clamp-2">{{ $post->excerpt }}</p>
                         <p class="text-gray-400 text-[10px] mt-2">{{ $post->published_at->format('d.m.Y') }}</p>
                     </div>
                 </a>

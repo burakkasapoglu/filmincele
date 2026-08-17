@@ -29,7 +29,7 @@
                 </span>
                 <span class="text-white/70 text-xs block mt-1">{{ $mood['description'] }}</span>
                 @if($locked)
-                    <span class="text-white/50 text-[10px] block mt-1">Giriş yap & 18+</span>
+                    <span class="text-white/70 text-[10px] block mt-1">Giriş yap & 18+</span>
                 @endif
             </button>
         @endforeach
