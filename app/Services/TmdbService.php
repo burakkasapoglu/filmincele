@@ -83,6 +83,7 @@ class TmdbService
     {
         $data = $this->fetch('/movie/' . $movieId, [
             'append_to_response' => 'videos,credits,recommendations,release_dates',
+            'include_video_language' => 'tr,en,null',
         ]);
 
         if ($data && !empty($data['release_dates']['results'])) {
@@ -210,6 +211,7 @@ class TmdbService
     {
         return $this->fetch('/tv/' . $seriesId, [
             'append_to_response' => 'videos,credits,recommendations,watch/providers',
+            'include_video_language' => 'tr,en,null',
         ]);
     }
 

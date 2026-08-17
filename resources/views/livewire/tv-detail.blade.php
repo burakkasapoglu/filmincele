@@ -2,14 +2,27 @@
     @if($series)
         @php
         $ldImage = $series['poster_path'] ? 'https://image.tmdb.org/t/p/w500' . $series['poster_path'] : null;
-        @endphp
-        <script type="application/ld+json">{!! json_encode([
+        $ldJson = [
             '@context' => 'https://schema.org', '@type' => 'TVSeries',
             'name' => $series['name'] ?? '', 'description' => $series['overview'] ?? '',
             'startDate' => $series['first_air_date'] ?? '', 'image' => $ldImage,
             'numberOfSeasons' => $series['number_of_seasons'] ?? 0, 'numberOfEpisodes' => $series['number_of_episodes'] ?? 0,
             'genre' => !empty($series['genres']) ? array_column($series['genres'], 'name') : [],
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+        ];
+        $trailerVideo = collect($videos ?? [])->first(fn ($v) => ($v['site'] ?? '') === 'YouTube' && ($v['type'] ?? '') === 'Trailer')
+            ?? collect($videos ?? [])->first(fn ($v) => ($v['site'] ?? '') === 'YouTube');
+        if ($trailerVideo) {
+            $ldJson['trailer'] = [
+                '@type' => 'VideoObject',
+                'name' => ($series['name'] ?? '') . ' — Fragman',
+                'description' => \Illuminate\Support\Str::limit($series['overview'] ?? '', 300),
+                'thumbnailUrl' => ['https://img.youtube.com/vi/' . $trailerVideo['key'] . '/hqdefault.jpg'],
+                'uploadDate' => $trailerVideo['published_at'] ?? ($series['first_air_date'] ?? null),
+                'embedUrl' => 'https://www.youtube.com/embed/' . $trailerVideo['key'],
+            ];
+        }
+        @endphp
+        <script type="application/ld+json">{!! json_encode($ldJson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
         <div class="relative h-[50vh] min-h-[350px]">
             @if($series['backdrop_path'])
                 <img src="https://image.tmdb.org/t/p/w1280{{ $series['backdrop_path'] }}" class="w-full h-full object-cover" fetchpriority="high" alt="{{ $series['name'] }}">

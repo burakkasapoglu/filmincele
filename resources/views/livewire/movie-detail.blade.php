@@ -38,6 +38,18 @@
                 'reviewBody' => $r->review,
             ])->all();
         }
+        $trailerVideo = collect($videos ?? [])->first(fn ($v) => ($v['site'] ?? '') === 'YouTube' && ($v['type'] ?? '') === 'Trailer')
+            ?? collect($videos ?? [])->first(fn ($v) => ($v['site'] ?? '') === 'YouTube');
+        if ($trailerVideo) {
+            $ldJson['trailer'] = [
+                '@type' => 'VideoObject',
+                'name' => ($movie['title'] ?? '') . ' — Fragman',
+                'description' => \Illuminate\Support\Str::limit($movie['overview'] ?? '', 300),
+                'thumbnailUrl' => ['https://img.youtube.com/vi/' . $trailerVideo['key'] . '/hqdefault.jpg'],
+                'uploadDate' => $trailerVideo['published_at'] ?? ($movie['release_date'] ?? null),
+                'embedUrl' => 'https://www.youtube.com/embed/' . $trailerVideo['key'],
+            ];
+        }
         @endphp
         <script type="application/ld+json">{!! json_encode($ldJson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 
