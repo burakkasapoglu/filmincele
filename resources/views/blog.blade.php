@@ -17,7 +17,8 @@
             <a href="{{ url('/blog/' . $post->slug) }}" class="group bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-gray-700 transition duration-300">
                 <div class="aspect-[16/9] bg-gray-800 overflow-hidden">
                     @if($post->image_url)
-                        <img src="{{ $post->image_url }}" alt="{{ $post->title }}"
+                        @php $postImg = str_replace(['/w1280/', '/w780/'], '/w500/', $post->image_url); @endphp
+                        <img src="{{ $postImg }}" alt="{{ $post->title }}" loading="lazy"
                              class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-4xl text-gray-700">📝</div>

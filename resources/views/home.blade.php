@@ -46,7 +46,8 @@
                         <a href="{{ film_url($movie['id'], $movie['title'] ?? '') }}" class="group block">
                             <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                                 @if($movie['poster_path'] ?? null)
-                                    <img src="https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }}" loading="lazy"
+                                    <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}" loading="lazy"
+                                         srcset="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }} 1x, https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }} 2x"
                                          class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-4xl text-gray-600">🎬</div>
@@ -85,7 +86,8 @@
                 <a href="{{ url('/film/' . $movie['id'] . '-' . \Illuminate\Support\Str::slug($movie['title'] ?? $movie['name'] ?? '')) }}" class="group block">
                     <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                         @if($movie['poster_path'])
-                            <img src="https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }}"
+                            <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}"
+                                 srcset="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }} 1x, https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }} 2x"
                                  alt="{{ $movie['title'] ?? $movie['name'] ?? '' }}"
                                  class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                                  loading="lazy">
@@ -118,7 +120,8 @@
                 <a href="{{ url('/blog/' . $post->slug) }}" class="group bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition">
                     <div class="aspect-[16/9] bg-gray-800 overflow-hidden">
                         @if($post->image_url)
-                            <img src="{{ $post->image_url }}" alt="{{ $post->title }}" loading="lazy"
+                            @php $postImg = str_replace(['/w1280/', '/w780/'], '/w500/', $post->image_url); @endphp
+                            <img src="{{ $postImg }}" alt="{{ $post->title }}" loading="lazy"
                                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-3xl text-gray-700">📝</div>
