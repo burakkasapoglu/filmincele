@@ -78,8 +78,7 @@
     <div class="max-w-7xl mx-auto px-4 py-12">
         <h2 class="text-2xl font-bold text-white mb-6">🔥 Şu Anda Trendler</h2>
         @php
-            $tmdb = app(\App\Services\TmdbService::class);
-            $trending = $tmdb->getTrending();
+            $trending = \Illuminate\Support\Facades\Cache::remember('home:trending', 1800, fn () => app(\App\Services\TmdbService::class)->getTrending());
         @endphp
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @foreach(array_slice($trending, 0, 12) as $movie)
@@ -114,7 +113,7 @@
             <h2 class="text-2xl font-bold text-white">📝 Blog</h2>
             <a href="{{ url('/blog') }}" class="text-sm text-rose-400 hover:text-rose-300 transition">Tüm Yazılar →</a>
         </div>
-        @php $latestPosts = \App\Models\Post::where('is_published', true)->latest()->take(6)->get(); @endphp
+        @php $latestPosts = \Illuminate\Support\Facades\Cache::remember('home:latest-posts', 900, fn () => \App\Models\Post::where('is_published', true)->latest()->take(6)->get()); @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($latestPosts as $post)
                 <a href="{{ url('/blog/' . $post->slug) }}" class="group bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition">

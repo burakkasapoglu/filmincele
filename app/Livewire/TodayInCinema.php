@@ -16,8 +16,19 @@ class TodayInCinema extends Component
         $today = now();
         $this->todayDate = $today->format('d.m.Y');
 
-        $this->loadBirthdays($tmdb, $today);
-        $this->loadAnniversaryMovies($tmdb, $today);
+        $cacheKey = 'today-in-cinema:' . $today->toDateString();
+
+        $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($tmdb, $today) {
+            $this->loadBirthdays($tmdb, $today);
+            $this->loadAnniversaryMovies($tmdb, $today);
+            return [
+                'birthdayGroups' => $this->birthdayGroups,
+                'anniversaryMovies' => $this->anniversaryMovies,
+            ];
+        });
+
+        $this->birthdayGroups = $data['birthdayGroups'];
+        $this->anniversaryMovies = $data['anniversaryMovies'];
     }
 
     private function loadBirthdays(TmdbService $tmdb, $today): void
