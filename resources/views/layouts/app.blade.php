@@ -55,7 +55,7 @@
                                     <div class="grid grid-cols-2 gap-4">
                                         {{-- Türler --}}
                                         <div>
-                                            <p class="text-gray-500 text-xs uppercase tracking-wide mb-2 px-2">Türler</p>
+                                            <p class="text-gray-400 text-xs uppercase tracking-wide mb-2 px-2">Türler</p>
                                             <div class="grid grid-cols-2 gap-0.5">
                                                 @foreach(config('moods') as $slug => $mood)
                                                     <a href="{{ url('/mod/' . $slug) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-gray-300 hover:bg-gray-800 hover:text-white transition">
@@ -66,7 +66,7 @@
                                         </div>
                                         {{-- Koleksiyonlar + Özel --}}
                                         <div>
-                                            <p class="text-gray-500 text-xs uppercase tracking-wide mb-2 px-2">Koleksiyonlar</p>
+                                            <p class="text-gray-400 text-xs uppercase tracking-wide mb-2 px-2">Koleksiyonlar</p>
                                             @foreach(config('collections') as $slug => $coll)
                                                 <a href="{{ url('/koleksiyon/' . $slug) }}" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-gray-300 hover:bg-gray-800 hover:text-white transition">
                                                     <span>{{ $coll['emoji'] }}</span> {{ $coll['name'] }}
