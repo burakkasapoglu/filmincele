@@ -46,11 +46,11 @@
                         <a href="{{ film_url($movie['id'], $movie['title'] ?? '') }}" class="group block">
                             <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                                 @if($movie['poster_path'] ?? null)
-                                    <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}" loading="lazy"
+                                    <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}" loading="lazy" alt="{{ $movie[\'title\'] }}"
                                          srcset="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }} 1x, https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }} 2x"
                                          class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center text-4xl text-gray-600">🎬</div>
+                                    <div class="w-full h-full flex items-center justify-center text-4xl text-gray-400">🎬</div>
                                 @endif
                                 <div class="absolute top-2 left-2">
                                     <span class="px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs font-semibold text-white">★ {{ number_format($movie['vote_average'] ?? 0, 1) }}</span>
@@ -91,7 +91,7 @@
                                  class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                                  loading="lazy">
                         @else
-                            <div class="w-full h-full flex items-center justify-center text-4xl text-gray-600">🎬</div>
+                            <div class="w-full h-full flex items-center justify-center text-4xl text-gray-400">🎬</div>
                         @endif
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-3">
                             <div class="flex items-center gap-1 text-yellow-400 text-sm">
@@ -111,7 +111,7 @@
     <div class="max-w-7xl mx-auto px-4 py-12">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold text-white">📝 Blog</h2>
-            <a href="{{ url('/blog') }}" class="text-sm text-rose-400 hover:text-rose-300 transition">Tüm Yazılar →</a>
+            <a href="{{ url('/blog') }}" class="text-sm text-rose-400 hover:text-rose-300 underline underline-offset-4 decoration-rose-400/60 transition">Tüm Yazılar →</a>
         </div>
         @php $latestPosts = \Illuminate\Support\Facades\Cache::remember('home:latest-posts', 900, fn () => \App\Models\Post::where('is_published', true)->latest()->take(6)->get()); @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -123,17 +123,17 @@
                             <img src="{{ $postImg }}" alt="{{ $post->title }}" loading="lazy"
                                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         @else
-                            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-700">📝</div>
+                            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-400">📝</div>
                         @endif
                     </div>
                     <div class="p-4">
                         <div class="flex items-center gap-2 mb-2">
                             <span class="px-2 py-0.5 bg-rose-600/10 text-rose-400 text-[10px] rounded-full">{{ $post->category }}</span>
-                            <span class="text-gray-600 text-[10px]">{{ $post->read_time }} dk</span>
+                            <span class="text-gray-400 text-[10px]">{{ $post->read_time }} dk</span>
                         </div>
                         <h3 class="text-white font-medium text-sm line-clamp-2 group-hover:text-rose-400 transition">{{ $post->title }}</h3>
                         <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ $post->excerpt }}</p>
-                        <p class="text-gray-600 text-[10px] mt-2">{{ $post->published_at->format('d.m.Y') }}</p>
+                        <p class="text-gray-400 text-[10px] mt-2">{{ $post->published_at->format('d.m.Y') }}</p>
                     </div>
                 </a>
             @endforeach

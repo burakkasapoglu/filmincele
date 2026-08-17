@@ -94,7 +94,7 @@
                     <h3 class="text-sm font-medium text-white">Kapak Görseli</h3>
                     @php $imgUrl = old('image_url', $post->image_url ?? $ai_image_url ?? ''); @endphp
                     <div id="image-preview" class="aspect-video rounded-xl bg-gray-800 overflow-hidden {{ $imgUrl ? '' : 'hidden' }}">
-                        <img src="{{ $imgUrl }}" class="w-full h-full object-cover" id="preview-img">
+                        <img src="{{ $imgUrl }}" class="w-full h-full object-cover" id="preview-img" alt="Yazı görseli önizleme">
                     </div>
                     <input type="url" name="image_url" id="image-url" value="{{ $imgUrl }}"
                            placeholder="https://image.tmdb.org/..."

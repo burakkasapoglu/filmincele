@@ -12,7 +12,7 @@
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
         <div class="relative h-[50vh] min-h-[350px]">
             @if($series['backdrop_path'])
-                <img src="https://image.tmdb.org/t/p/w1280{{ $series['backdrop_path'] }}" class="w-full h-full object-cover" fetchpriority="high">
+                <img src="https://image.tmdb.org/t/p/w1280{{ $series['backdrop_path'] }}" class="w-full h-full object-cover" fetchpriority="high" alt="{{ $series[\'name\'] }}">
             @else
                 <div class="w-full h-full bg-gray-900"></div>
             @endif
@@ -20,7 +20,7 @@
             <div class="absolute bottom-0 left-0 right-0 p-6">
                 <div class="max-w-7xl mx-auto flex gap-6 items-end">
                     @if($series['poster_path'])
-                        <img src="https://image.tmdb.org/t/p/w342{{ $series['poster_path'] }}" class="w-40 rounded-xl shadow-2xl hidden md:block">
+                        <img src="https://image.tmdb.org/t/p/w342{{ $series['poster_path'] }}" class="w-40 rounded-xl shadow-2xl hidden md:block" alt="{{ $series[\'name\'] }} posteri">
                     @endif
                     <div class="flex-1">
                         <h1 class="text-3xl font-bold text-white mb-1">{{ $series['name'] }}</h1>
@@ -84,7 +84,7 @@
                                         <a href="{{ kisi_url($c['id'], $c['name']) }}" class="flex items-center gap-3 bg-gray-900 rounded-xl p-3 hover:bg-gray-800 transition group">
                                             <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
                                                 @if($c['profile_path'])
-                                                    <img src="https://image.tmdb.org/t/p/w185{{ $c['profile_path'] }}" class="w-full h-full object-cover" loading="lazy">
+                                                    <img src="https://image.tmdb.org/t/p/w185{{ $c['profile_path'] }}" class="w-full h-full object-cover" loading="lazy" alt="{{ $c[\'name\'] }}">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-gray-600">🎬</div>
                                                 @endif
@@ -109,7 +109,7 @@
                                     <a href="{{ dizi_url($rec['id'], $rec['name'] ?? $rec['title'] ?? '') }}" class="flex-shrink-0 w-28 group">
                                         <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-2">
                                             @if($rec['poster_path'] ?? null)
-                                                <img src="https://image.tmdb.org/t/p/w185{{ $rec['poster_path'] }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                                <img src="https://image.tmdb.org/t/p/w185{{ $rec['poster_path'] }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="{{ $rec[\'name\'] ?? \'\' }}">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-2xl text-gray-600">📺</div>
                                             @endif
@@ -132,7 +132,7 @@
                                         <div class="bg-gray-900 rounded-xl p-4 border border-gray-800/50">
                                             <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-3">
                                                 @if($season['poster_path'])
-                                                    <img src="https://image.tmdb.org/t/p/w342{{ $season['poster_path'] }}" class="w-full h-full object-cover" loading="lazy">
+                                                    <img src="https://image.tmdb.org/t/p/w342{{ $season['poster_path'] }}" class="w-full h-full object-cover" loading="lazy" alt="{{ $season[\'name\'] }}">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center text-gray-600">📺</div>
                                                 @endif
@@ -165,7 +165,7 @@
                                     <a href="{{ kisi_url($cast['id'], $cast['name']) }}" class="flex-shrink-0 w-20 text-center group">
                                         <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-800 mx-auto mb-1.5">
                                             @if($cast['profile_path'])
-                                                <img src="https://image.tmdb.org/t/p/w185{{ $cast['profile_path'] }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" loading="lazy">
+                                                <img src="https://image.tmdb.org/t/p/w185{{ $cast['profile_path'] }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" loading="lazy" alt="{{ $cast[\'name\'] }}">
                                             @else <div class="w-full h-full flex items-center justify-center text-xl text-gray-600">👤</div> @endif
                                         </div>
                                         <p class="text-white text-xs font-medium truncate group-hover:text-rose-400 transition">{{ $cast['name'] }}</p>
@@ -194,7 +194,7 @@
                         @auth
                             <livewire:rating-stars :movie-id="$tmdbId" :media-type="'tv'" />
                         @else
-                            <p class="text-gray-400 text-sm">Puan vermek için <a href="{{ url('/giris') }}" class="text-rose-400 hover:underline">giriş yapın</a>.</p>
+                            <p class="text-gray-400 text-sm">Puan vermek için <a href="{{ url('/giris') }}" class="text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300">giriş yapın</a>.</p>
                         @endauth
                     </div>
 
@@ -204,7 +204,7 @@
                         @auth
                             <livewire:watchlist-button :tmdb-id="$tmdbId" :media-type="'tv'" />
                         @else
-                            <p class="text-gray-400 text-sm">Liste oluşturmak için <a href="{{ url('/giris') }}" class="text-rose-400 hover:underline">giriş yapın</a>.</p>
+                            <p class="text-gray-400 text-sm">Liste oluşturmak için <a href="{{ url('/giris') }}" class="text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300">giriş yapın</a>.</p>
                         @endauth
                     </div>
 
@@ -227,7 +227,7 @@
                                             <a href="{{ url('/platform/' . $p['provider_id'] . '/' . \Illuminate\Support\Str::slug($p['provider_name'])) }}"
                                                class="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2 hover:bg-gray-700 transition group">
                                                 @if($p['logo_path'])
-                                                    <img src="https://image.tmdb.org/t/p/w45{{ $p['logo_path'] }}" class="w-6 h-6 rounded object-contain" loading="lazy">
+                                                    <img src="https://image.tmdb.org/t/p/w45{{ $p['logo_path'] }}" class="w-6 h-6 rounded object-contain" loading="lazy" alt="{{ $p[\'provider_name\'] ?? \'\' }}">
                                                 @endif
                                                 <span class="text-white text-xs group-hover:text-rose-400 transition">{{ $p['provider_name'] }}</span>
                                             </a>
@@ -247,7 +247,7 @@
                                     <a href="{{ url('/sirket/' . $c['id'] . '/' . \Illuminate\Support\Str::slug($c['name'])) }}"
                                        class="flex items-center gap-2 text-sm text-white hover:text-rose-400 transition">
                                         @if($c['logo_path'])
-                                            <img src="https://image.tmdb.org/t/p/w92{{ $c['logo_path'] }}" class="w-6 h-6 rounded object-contain" loading="lazy">
+                                            <img src="https://image.tmdb.org/t/p/w92{{ $c['logo_path'] }}" class="w-6 h-6 rounded object-contain" loading="lazy" alt="{{ $c[\'name\'] }}">
                                         @endif
                                         {{ $c['name'] }}
                                     </a>

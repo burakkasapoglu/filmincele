@@ -14,7 +14,7 @@
                         <button wire:click="select1({{ $s['id'] }})"
                                 class="w-full text-left px-4 py-3 hover:bg-gray-800 rounded-lg flex items-center gap-3 transition border-b border-gray-800 last:border-0">
                             <div class="w-10 h-14 rounded-lg overflow-hidden bg-gray-700 flex-shrink-0">
-                                @if($s['poster_path'])<img src="https://image.tmdb.org/t/p/w92{{ $s['poster_path'] }}" class="w-full h-full object-cover">@endif
+                                @if($s['poster_path'])<img src="https://image.tmdb.org/t/p/w92{{ $s['poster_path'] }}" class="w-full h-full object-cover" alt="{{ $s[\'title\'] ?? \'\' }}">@endif
                             </div>
                             <div class="min-w-0"><p class="text-white text-sm font-medium truncate">{{ $s['title'] }}</p><p class="text-gray-500 text-xs">{{ substr($s['release_date'] ?? '—', 0, 4) }} · ★ {{ number_format($s['vote_average'] ?? 0, 1) }}</p></div>
                         </button>
@@ -37,7 +37,7 @@
                         <button wire:click="select2({{ $s['id'] }})"
                                 class="w-full text-left px-4 py-3 hover:bg-gray-800 rounded-lg flex items-center gap-3 transition border-b border-gray-800 last:border-0">
                             <div class="w-10 h-14 rounded-lg overflow-hidden bg-gray-700 flex-shrink-0">
-                                @if($s['poster_path'])<img src="https://image.tmdb.org/t/p/w92{{ $s['poster_path'] }}" class="w-full h-full object-cover">@endif
+                                @if($s['poster_path'])<img src="https://image.tmdb.org/t/p/w92{{ $s['poster_path'] }}" class="w-full h-full object-cover" alt="{{ $s[\'title\'] ?? \'\' }}">@endif
                             </div>
                             <div class="min-w-0"><p class="text-white text-sm font-medium truncate">{{ $s['title'] }}</p><p class="text-gray-500 text-xs">{{ substr($s['release_date'] ?? '—', 0, 4) }} · ★ {{ number_format($s['vote_average'] ?? 0, 1) }}</p></div>
                         </button>

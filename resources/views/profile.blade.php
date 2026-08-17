@@ -143,7 +143,7 @@ function copyToClipboard(text) {
                                     <a href="{{ $movie->isTv() ? dizi_url($movie->tmdb_id, $movie->title) : film_url($movie->tmdb_id, $movie->title) }}" class="flex-shrink-0 w-20 group">
                                         <div class="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 mb-1">
                                             @if($movie->poster_path)
-                                                <img src="https://image.tmdb.org/t/p/w154{{ $movie->poster_path }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+                                                <img src="https://image.tmdb.org/t/p/w154{{ $movie->poster_path }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" alt="{{ $movie->title }}">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-xl text-gray-600">{{ $movie->isTv() ? '📺' : '🎬' }}</div>
                                             @endif

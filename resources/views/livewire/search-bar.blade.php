@@ -28,7 +28,8 @@
                     <div class="w-10 h-12 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
                         @if($item['poster_path'] ?? $item['profile_path'] ?? null)
                             <img src="https://image.tmdb.org/t/p/w92{{ $item['poster_path'] ?? $item['profile_path'] }}"
-                                 class="w-full h-full object-cover" loading="lazy">
+                                 class="w-full h-full object-cover" loading="lazy"
+                                 alt="{{ $item['title'] ?? $item['name'] ?? 'Sonuç' }}">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-lg">
                                 {{ ($item['media_type'] ?? '') === 'person' ? '👤' : '🎬' }}

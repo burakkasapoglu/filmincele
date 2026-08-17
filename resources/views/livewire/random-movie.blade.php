@@ -14,7 +14,7 @@
                            shadow-lg shadow-rose-600/20 disabled:opacity-50">
                 🎬 Film Öner
             </button>
-            <span class="text-gray-600 text-xs">veya</span>
+            <span class="text-gray-400 text-xs">veya</span>
             <button wire:click="pickTV"
                     wire:loading.attr="disabled"
                     class="px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200

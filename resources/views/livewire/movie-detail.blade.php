@@ -231,7 +231,7 @@
                             <livewire:rating-stars :movie-id="$tmdbId" />
                         @else
                             <p class="text-gray-400 text-sm">
-                                Puan vermek için <a href="{{ url('/giris') }}" class="text-rose-400 hover:underline">giriş yapın</a>.
+                                Puan vermek için <a href="{{ url('/giris') }}" class="text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300">giriş yapın</a>.
                             </p>
                         @endauth
                         @if($localMovie && $localMovie->ratings()->count() > 0)
@@ -266,7 +266,7 @@
                             <livewire:watchlist-button :tmdb-id="$tmdbId" />
                         @else
                             <p class="text-gray-400 text-sm">
-                                Liste oluşturmak için <a href="{{ url('/giris') }}" class="text-rose-400 hover:underline">giriş yapın</a>.
+                                Liste oluşturmak için <a href="{{ url('/giris') }}" class="text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300">giriş yapın</a>.
                             </p>
                         @endauth
                     </div>

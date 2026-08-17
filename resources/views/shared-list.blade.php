@@ -28,7 +28,7 @@
                     <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                         @if($movie->poster_path)
                             <img src="https://image.tmdb.org/t/p/w342{{ $movie->poster_path }}" loading="lazy"
-                                 class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                                 class="w-full h-full object-cover transition duration-300 group-hover:scale-105" alt="{{ $movie->title }}">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-4xl text-gray-600">🎬</div>
                         @endif

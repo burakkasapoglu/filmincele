@@ -6,7 +6,7 @@ $initial = $u ? strtoupper(substr($u->name, 0, 1)) : '?';
 @endphp
 
 @if($u && $u->profile_photo_path)
-    <img src="{{ $u->profile_photo_url }}" class="{{ $size }} rounded-2xl object-cover {{ $attributes->get('class') }}">
+    <img src="{{ $u->profile_photo_url }}" class="{{ $size }} rounded-2xl object-cover {{ $attributes->get('class') }}" alt="{{ $u->name }}">
 @else
     <div class="{{ $size }} rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center relative overflow-hidden {{ $attributes->get('class') }}">
         <svg viewBox="0 0 100 100" class="w-3/4 h-3/4 text-white/30 absolute opacity-30">

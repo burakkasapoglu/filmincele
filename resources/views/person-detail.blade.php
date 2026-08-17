@@ -65,7 +65,7 @@ endif;
             <div class="flex-shrink-0 w-full md:w-72">
                 <div class="rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
                     @if($person['profile_path'])
-                        <img src="https://image.tmdb.org/t/p/w342{{ $person['profile_path'] }}" class="w-full aspect-[2/3] object-cover">
+                        <img src="https://image.tmdb.org/t/p/w342{{ $person['profile_path'] }}" class="w-full aspect-[2/3] object-cover" alt="{{ $person['name'] }}">
                     @else
                         <div class="w-full aspect-[2/3] flex items-center justify-center text-7xl text-gray-700 bg-gray-800">👤</div>
                     @endif
@@ -116,7 +116,7 @@ endif;
                                 <a href="{{ $section['type'] === 'tv' ? dizi_url($movie['id'], $movie['name'] ?? '') : film_url($movie['id'], $movie['title'] ?? '') }}" class="group block">
                                     <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                                         @if($movie['poster_path'])
-                                            <img src="https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }}" loading="lazy" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                                            <img src="https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }}" loading="lazy" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" alt="{{ $movie['title'] ?? $movie['name'] ?? 'Poster' }}">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center text-4xl text-gray-600">{{ $section['type'] === 'tv' ? '📺' : '🎬' }}</div>
                                         @endif

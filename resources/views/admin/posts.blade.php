@@ -31,7 +31,7 @@
                                 <div class="flex items-center gap-3">
                                     @if($post->image_url)
                                         <div class="w-12 h-8 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 hidden sm:block">
-                                            <img src="{{ $post->image_url }}" class="w-full h-full object-cover">
+                                            <img src="{{ $post->image_url }}" class="w-full h-full object-cover" alt="{{ $post->title }}">
                                         </div>
                                     @endif
                                     <div class="min-w-0">

@@ -139,9 +139,9 @@
 
     <footer class="border-t border-gray-800 py-8 mt-16">
         <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm space-y-2">
-            <p>&copy; {{ date('Y') }} filmincele.com — Film verileri <a href="https://www.themoviedb.org/" class="text-rose-400 hover:underline" target="_blank">TMDB</a> tarafından sağlanmaktadır.</p>
+            <p>&copy; {{ date('Y') }} filmincele.com — Film verileri <a href="https://www.themoviedb.org/" class="text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300" target="_blank" rel="noopener">TMDB</a> tarafından sağlanmaktadır.</p>
             <p>
-                <a href="{{ url('/kvkk') }}" class="text-gray-400 hover:text-white transition">KVKK Aydınlatma Metni</a>
+                <a href="{{ url('/kvkk') }}" class="text-gray-400 underline underline-offset-4 decoration-gray-500 hover:text-white transition">KVKK Aydınlatma Metni</a>
                 @auth
                     @if(Auth::user()->is_admin)
                         · <a href="{{ url('/admin') }}" class="text-rose-400 hover:text-rose-300 transition">Admin Panel</a>

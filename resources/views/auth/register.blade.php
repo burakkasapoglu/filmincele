@@ -86,7 +86,7 @@
 
         <div class="mt-4 text-center">
             <span class="text-gray-400 text-sm">Zaten hesabın var mı?</span>
-            <a href="{{ url('/giris') }}" class="text-sm text-rose-400 hover:underline ml-1">Giriş yap</a>
+            <a href="{{ url('/giris') }}" class="text-sm text-rose-400 underline underline-offset-4 decoration-rose-400/60 hover:text-rose-300 ml-1">Giriş yap</a>
         </div>
     </x-authentication-card>
 </x-guest-layout>
