@@ -46,7 +46,7 @@
                         <a href="{{ film_url($movie['id'], $movie['title'] ?? '') }}" class="group block">
                             <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                                 @if($movie['poster_path'] ?? null)
-                                    <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}" loading="lazy" alt="{{ $movie[\'title\'] }}"
+                                    <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}" loading="lazy" alt="{{ $movie['title'] }}"
                                          srcset="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }} 1x, https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }} 2x"
                                          class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
                                 @else

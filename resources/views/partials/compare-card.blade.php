@@ -2,14 +2,14 @@
 <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
     <div class="h-44 relative">
         @if($m['backdrop_path'])
-            <img src="https://image.tmdb.org/t/p/w780{{ $m['backdrop_path'] }}" class="w-full h-full object-cover" alt="{{ $m[\'title\'] ?? \'\' }}">
+            <img src="https://image.tmdb.org/t/p/w780{{ $m['backdrop_path'] }}" class="w-full h-full object-cover" alt="{{ $m['title'] ?? '' }}">
         @else <div class="w-full h-full bg-gray-800"></div> @endif
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900"></div>
         <button wire:click="{{ $clear }}" class="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-red-600 rounded-full flex items-center justify-center text-white text-sm transition">✕</button>
     </div>
     <div class="p-5 -mt-14 relative">
         <div class="flex gap-4 items-end mb-4">
-            @if($m['poster_path'])<img src="https://image.tmdb.org/t/p/w185{{ $m['poster_path'] }}" class="w-24 rounded-xl shadow-xl flex-shrink-0" alt="{{ $m[\'title\'] ?? \'\' }} posteri">@endif
+            @if($m['poster_path'])<img src="https://image.tmdb.org/t/p/w185{{ $m['poster_path'] }}" class="w-24 rounded-xl shadow-xl flex-shrink-0" alt="{{ $m['title'] ?? '' }} posteri">@endif
             <div>
                 <h2 class="text-xl font-bold text-white">{{ $m['title'] }}</h2>
                 @if(($m['original_title'] ?? '') !== ($m['title'] ?? ''))
@@ -40,7 +40,7 @@
             <div class="mb-3"><p class="text-gray-500 text-[10px] uppercase mb-1">Yönetmen</p>
                 @foreach($directors as $d)
                     <a href="{{ kisi_url($d['id'], $d['name']) }}" class="inline-flex items-center gap-1.5 bg-gray-800/50 rounded-lg px-2.5 py-1 hover:bg-gray-800 transition group mr-1.5 mb-1">
-                        <div class="w-5 h-5 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">@if($d['profile_path'])<img src="https://image.tmdb.org/t/p/w92{{ $d['profile_path'] }}" class="w-full h-full object-cover" alt="{{ $d[\'name\'] }}">@else<span class="text-[10px]">🎬</span>@endif</div>
+                        <div class="w-5 h-5 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">@if($d['profile_path'])<img src="https://image.tmdb.org/t/p/w92{{ $d['profile_path'] }}" class="w-full h-full object-cover" alt="{{ $d['name'] }}">@else<span class="text-[10px]">🎬</span>@endif</div>
                         <span class="text-white text-xs group-hover:text-rose-400 transition">{{ $d['name'] }}</span>
                     </a>
                 @endforeach

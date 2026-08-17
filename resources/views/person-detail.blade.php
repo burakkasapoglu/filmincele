@@ -25,7 +25,7 @@ if ($data):
     $twitterUrl = ($extIds['twitter_id'] ?? null) ? 'https://x.com/' . $extIds['twitter_id'] : null;
 
     $alsoKnownAs = array_values(array_filter($data['also_known_as'] ?? [], fn($n) =>
-        preg_match('/^[a-zA-ZığüşöçİĞÜŞÖÇ .\-\']+$/u', $n) && strlen($n) > 1
+        preg_match('/^[a-zA-ZığüşöçİĞÜŞÖÇ .\-']+$/u', $n) && strlen($n) > 1
     ));
 
     $allItems = [];
