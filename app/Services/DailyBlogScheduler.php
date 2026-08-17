@@ -32,14 +32,27 @@ class DailyBlogScheduler
 
             try {
                 $post = app(BlogGeneratorService::class)->generate();
-                $post
-                    ? Log::info("Günlük yazı oluşturuldu: {$post->title}")
-                    : Log::warning('Günlük yazı üretilemedi (konu verisi yok).');
+
+                if ($post) {
+                    Log::info("Günlük yazı oluşturuldu: {$post->title}");
+                    $this->refreshSitemap();
+                } else {
+                    Log::warning('Günlük yazı üretilemedi (konu verisi yok).');
+                }
             } finally {
                 Cache::forget('daily-blog:running');
             }
         } catch (\Throwable $e) {
             Log::warning('DailyBlogScheduler hatası: ' . $e->getMessage());
+        }
+    }
+
+    private function refreshSitemap(): void
+    {
+        try {
+            \Artisan::call('sitemap:generate');
+        } catch (\Throwable $e) {
+            Log::warning('Sitemap yenilenemedi: ' . $e->getMessage());
         }
     }
 }

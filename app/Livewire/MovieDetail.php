@@ -23,16 +23,18 @@ class MovieDetail extends Component
 
         $data = $tmdb->getMovieDetails($tmdbId);
 
-        if ($data) {
-            $this->movie = $data;
-            $this->credits = $data['credits'] ?? null;
-            $this->videos = $data['videos']['results'] ?? [];
-            $this->recommendations = $data['recommendations']['results'] ?? [];
-            $this->trailerUrl = $tmdb->getTrailerUrl($this->videos);
-            $this->watchProviders = $tmdb->getWatchProviders($tmdbId);
-
-            $this->localMovie = Movie::where('tmdb_id', $tmdbId)->first();
+        if (!$data) {
+            abort(404, 'Film bulunamadı');
         }
+
+        $this->movie = $data;
+        $this->credits = $data['credits'] ?? null;
+        $this->videos = $data['videos']['results'] ?? [];
+        $this->recommendations = $data['recommendations']['results'] ?? [];
+        $this->trailerUrl = $tmdb->getTrailerUrl($this->videos);
+        $this->watchProviders = $tmdb->getWatchProviders($tmdbId);
+
+        $this->localMovie = Movie::where('tmdb_id', $tmdbId)->first();
     }
 
     public function render()

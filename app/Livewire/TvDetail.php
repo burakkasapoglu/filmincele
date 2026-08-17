@@ -21,15 +21,17 @@ class TvDetail extends Component
         $this->tmdbId = $tmdbId;
         $data = $tmdb->getTVDetails($tmdbId);
 
-        if ($data) {
-            $this->series = $data;
-            $this->credits = $data['credits'] ?? null;
-            $this->videos = $data['videos']['results'] ?? [];
-            $this->recommendations = $data['recommendations']['results'] ?? [];
-            $this->trailerUrl = $tmdb->getTrailerUrl($this->videos);
-            $this->seasons = $data['seasons'] ?? [];
-            $this->watchProviders = $data['watch/providers'] ?? null;
+        if (!$data) {
+            abort(404, 'Dizi bulunamadı');
         }
+
+        $this->series = $data;
+        $this->credits = $data['credits'] ?? null;
+        $this->videos = $data['videos']['results'] ?? [];
+        $this->recommendations = $data['recommendations']['results'] ?? [];
+        $this->trailerUrl = $tmdb->getTrailerUrl($this->videos);
+        $this->seasons = $data['seasons'] ?? [];
+        $this->watchProviders = $data['watch/providers'] ?? null;
     }
 
     public function render()

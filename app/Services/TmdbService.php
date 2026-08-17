@@ -23,7 +23,7 @@ class TmdbService
 
         $cacheKey = 'tmdb:' . $endpoint . ':' . md5(serialize($params));
 
-        return Cache::remember($cacheKey, 3600, function () use ($endpoint, $params) {
+        $result = Cache::remember($cacheKey, 3600, function () use ($endpoint, $params) {
             try {
                 $response = Http::timeout(10)
                     ->retry(2, 500, throw: false)
@@ -38,6 +38,12 @@ class TmdbService
 
             return $response->json();
         });
+
+        if ($result === null) {
+            Cache::forget($cacheKey);
+        }
+
+        return $result;
     }
 
     public function getImageUrl(?string $path, string $size = 'w500'): ?string
