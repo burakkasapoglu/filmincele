@@ -12,7 +12,7 @@
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
         <div class="relative h-[50vh] min-h-[350px]">
             @if($series['backdrop_path'])
-                <img src="https://image.tmdb.org/t/p/w1280{{ $series['backdrop_path'] }}" class="w-full h-full object-cover">
+                <img src="https://image.tmdb.org/t/p/w1280{{ $series['backdrop_path'] }}" class="w-full h-full object-cover" fetchpriority="high">
             @else
                 <div class="w-full h-full bg-gray-900"></div>
             @endif

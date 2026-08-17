@@ -46,6 +46,7 @@
             @if($movie['backdrop_path'])
                 <img src="https://image.tmdb.org/t/p/w1280{{ $movie['backdrop_path'] }}"
                      alt="{{ $movie['title'] }}"
+                     fetchpriority="high"
                      class="w-full h-full object-cover">
             @else
                 <div class="w-full h-full bg-gray-900"></div>

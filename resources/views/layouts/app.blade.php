@@ -136,7 +136,7 @@
     </main>
 
     <footer class="border-t border-gray-800 py-8 mt-16">
-        <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm space-y-2">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm space-y-2">
             <p>&copy; {{ date('Y') }} filmincele.com — Film verileri <a href="https://www.themoviedb.org/" class="text-rose-400 hover:underline" target="_blank">TMDB</a> tarafından sağlanmaktadır.</p>
             <p>
                 <a href="{{ url('/kvkk') }}" class="text-gray-400 hover:text-white transition">KVKK Aydınlatma Metni</a>
