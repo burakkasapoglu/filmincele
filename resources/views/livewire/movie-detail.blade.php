@@ -9,12 +9,6 @@
             'description' => $movie['overview'] ?? '',
             'dateCreated' => $movie['release_date'] ?? '',
             'image' => $ldImage,
-            'aggregateRating' => [
-                '@type' => 'AggregateRating',
-                'ratingValue' => $movie['vote_average'] ?? 0,
-                'bestRating' => 10,
-                'ratingCount' => $movie['vote_count'] ?? 0,
-            ],
         ];
         if (!empty($movie['genres'])) {
             $ldJson['genre'] = array_column($movie['genres'], 'name');
@@ -23,6 +17,26 @@
             foreach ($movie['credits']['crew'] as $c) {
                 if ($c['job'] === 'Director') { $ldJson['director'] = ['@type' => 'Person', 'name' => $c['name']]; break; }
             }
+        }
+        $userRatings = $localMovie?->ratings ?? collect();
+        $textReviews = $userRatings->filter(fn ($r) => trim((string) $r->review) !== '')->take(10)->values();
+        if ($userRatings->count() > 0) {
+            $ldJson['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $localMovie->avgRating(),
+                'bestRating' => 10,
+                'worstRating' => 1,
+                'ratingCount' => $userRatings->count(),
+            ];
+        }
+        if ($textReviews->count() > 0) {
+            $ldJson['review'] = $textReviews->map(fn ($r) => [
+                '@type' => 'Review',
+                'reviewRating' => ['@type' => 'Rating', 'ratingValue' => $r->rating, 'bestRating' => 10, 'worstRating' => 1],
+                'author' => ['@type' => 'Person', 'name' => $r->user?->name ?? 'Filmincele kullanıcısı'],
+                'datePublished' => $r->created_at?->toDateString(),
+                'reviewBody' => $r->review,
+            ])->all();
         }
         @endphp
         <script type="application/ld+json">{!! json_encode($ldJson, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
@@ -178,6 +192,29 @@
                                             {{ $rec['title'] }}
                                         </p>
                                     </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- User Reviews --}}
+                    @if($textReviews->count() > 0)
+                        <div>
+                            <h2 class="text-xl font-semibold text-white mb-3">Kullanıcı Yorumları</h2>
+                            <div class="space-y-4">
+                                @foreach($textReviews as $r)
+                                    <div class="bg-gray-900 rounded-xl p-5">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-white text-sm font-medium">{{ $r->user?->name ?? 'Filmincele kullanıcısı' }}</span>
+                                                <span class="text-yellow-400 text-xs">★ {{ $r->rating }}/10</span>
+                                            </div>
+                                            @if($r->created_at)
+                                                <span class="text-gray-600 text-xs">{{ $r->created_at->format('d.m.Y') }}</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">{{ $r->review }}</p>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>

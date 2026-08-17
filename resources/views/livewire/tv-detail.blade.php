@@ -7,7 +7,6 @@
             '@context' => 'https://schema.org', '@type' => 'TVSeries',
             'name' => $series['name'] ?? '', 'description' => $series['overview'] ?? '',
             'startDate' => $series['first_air_date'] ?? '', 'image' => $ldImage,
-            'aggregateRating' => ['@type' => 'AggregateRating', 'ratingValue' => $series['vote_average'] ?? 0, 'bestRating' => 10, 'ratingCount' => $series['vote_count'] ?? 0],
             'numberOfSeasons' => $series['number_of_seasons'] ?? 0, 'numberOfEpisodes' => $series['number_of_episodes'] ?? 0,
             'genre' => !empty($series['genres']) ? array_column($series['genres'], 'name') : [],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>

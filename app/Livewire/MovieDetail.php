@@ -34,7 +34,9 @@ class MovieDetail extends Component
         $this->trailerUrl = $tmdb->getTrailerUrl($this->videos);
         $this->watchProviders = $tmdb->getWatchProviders($tmdbId);
 
-        $this->localMovie = Movie::where('tmdb_id', $tmdbId)->first();
+            $this->localMovie = Movie::where('tmdb_id', $tmdbId)
+                ->with(['ratings' => fn ($q) => $q->with('user')->latest()])
+                ->first();
     }
 
     public function render()
