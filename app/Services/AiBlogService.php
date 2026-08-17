@@ -66,11 +66,78 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
             $text = trim(str_replace(['```json', '```'], '', $text));
             $result = json_decode($text, true);
 
-            return ($result && isset($result['title'], $result['body'])) ? $result : null;
+            if (!$result || !isset($result['title'], $result['body'])) return null;
+
+            $result['body'] = $this->fixMovieLinks($result['body']);
+
+            return $result;
         } catch (\Exception $e) {
             Log::warning('Gemini exception: ' . $e->getMessage());
             return null;
         }
+    }
+
+    private function fixMovieLinks(string $body): string
+    {
+        return preg_replace_callback(
+            '/\[([^\]]+)\]\(\/film\/(\d+)-[^)]*\)/',
+            function ($m) {
+                $title = $m[1];
+                $id = (int) $m[2];
+
+                $correctId = $this->resolveMovieId($title, $id);
+
+                if ($correctId === null) {
+                    return $title;
+                }
+
+                $slug = \Illuminate\Support\Str::slug($this->normalizeTitle($title));
+                return "[{$title}](/film/{$correctId}-{$slug})";
+            },
+            $body
+        );
+    }
+
+    private function resolveMovieId(string $title, int $claimedId): ?int
+    {
+        $tmdb = app(TmdbService::class);
+
+        $details = $tmdb->getMovieDetails($claimedId);
+        if ($details && $this->titlesMatch($title, $details['title'] ?? '', $details['original_title'] ?? '')) {
+            return $claimedId;
+        }
+
+        $results = $tmdb->searchMovies($this->normalizeTitle($title));
+        $cleanTitle = mb_strtolower(trim($title));
+        foreach ($results as $r) {
+            if ($this->titlesMatch($title, $r['title'] ?? '', $r['original_title'] ?? '')) {
+                return $r['id'];
+            }
+        }
+
+        return $results[0]['id'] ?? null;
+    }
+
+    private function titlesMatch(string $linkTitle, string ...$candidates): bool
+    {
+        $link = $this->slugifyTitle($linkTitle);
+        foreach ($candidates as $c) {
+            if ($c && $this->slugifyTitle($c) === $link) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function slugifyTitle(string $title): string
+    {
+        $title = $this->normalizeTitle($title);
+        return \Illuminate\Support\Str::slug($title);
+    }
+
+    private function normalizeTitle(string $title): string
+    {
+        return trim(preg_replace('/^(dizisi|filmi|filmi|yapımı)\s*$/iu', '', $title));
     }
 
     private function generateFallback(string $topic): array
