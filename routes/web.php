@@ -16,17 +16,50 @@ Route::get('/mod/{mood}', function (string $mood) {
 })->middleware('age-gate')->name('mood');
 
 Route::get('/film/{idAndSlug}', function (string $idAndSlug) {
-    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    $parts = explode('-', $idAndSlug);
+    $tmdbId = (int) $parts[0];
+    $slug = implode('-', array_slice($parts, 1));
+
+    $data = app(\App\Services\TmdbService::class)->getMovieDetails($tmdbId);
+    if (!$data) abort(404);
+
+    $canonicalSlug = \Illuminate\Support\Str::slug($data['title'] ?? '');
+    if ($slug !== $canonicalSlug) {
+        return redirect()->to('/film/' . $tmdbId . ($canonicalSlug ? '-' . $canonicalSlug : ''), 301);
+    }
+
     return view('movie-detail', ['tmdbId' => $tmdbId]);
 })->name('movie.show');
 
 Route::get('/dizi/{idAndSlug}', function (string $idAndSlug) {
-    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    $parts = explode('-', $idAndSlug);
+    $tmdbId = (int) $parts[0];
+    $slug = implode('-', array_slice($parts, 1));
+
+    $data = app(\App\Services\TmdbService::class)->getTVDetails($tmdbId);
+    if (!$data) abort(404);
+
+    $canonicalSlug = \Illuminate\Support\Str::slug($data['name'] ?? '');
+    if ($slug !== $canonicalSlug) {
+        return redirect()->to('/dizi/' . $tmdbId . ($canonicalSlug ? '-' . $canonicalSlug : ''), 301);
+    }
+
     return view('tv-detail', ['tmdbId' => $tmdbId]);
 })->name('tv.show');
 
 Route::get('/kisi/{idAndSlug}', function (string $idAndSlug) {
-    $tmdbId = (int) explode('-', $idAndSlug)[0];
+    $parts = explode('-', $idAndSlug);
+    $tmdbId = (int) $parts[0];
+    $slug = implode('-', array_slice($parts, 1));
+
+    $data = app(\App\Services\TmdbService::class)->getPersonDetails($tmdbId);
+    if (!$data) abort(404);
+
+    $canonicalSlug = \Illuminate\Support\Str::slug($data['name'] ?? '');
+    if ($slug !== $canonicalSlug) {
+        return redirect()->to('/kisi/' . $tmdbId . ($canonicalSlug ? '-' . $canonicalSlug : ''), 301);
+    }
+
     return view('person-detail', ['tmdbId' => $tmdbId]);
 })->name('person.show');
 
