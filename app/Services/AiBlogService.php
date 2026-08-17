@@ -228,18 +228,24 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
     {
         $tmdb = app(TmdbService::class);
 
-        $results = $tmdb->searchMovies($query);
-        if (empty($results)) {
-            $words = explode(' ', $query);
-            $results = $tmdb->searchMovies($words[0] ?? $query);
-        }
-        if (empty($results)) {
-            $results = $tmdb->getPopularMovies();
+        $candidates = array_merge(
+            $tmdb->searchMulti($query),
+            $tmdb->searchMovies($query)
+        );
+
+        foreach ($candidates as $item) {
+            $path = $item['poster_path'] ?? $item['profile_path'] ?? null;
+            if ($path) {
+                return 'https://image.tmdb.org/t/p/w780' . $path;
+            }
         }
 
-        if (!empty($results) && isset($results[0]['poster_path'])) {
-            return 'https://image.tmdb.org/t/p/w780' . $results[0]['poster_path'];
+        foreach ($tmdb->getPopularMovies() as $item) {
+            if (!empty($item['poster_path'])) {
+                return 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
+            }
         }
+
         return null;
     }
 }

@@ -8,23 +8,152 @@ use Illuminate\Support\Facades\Log;
 class BlogGeneratorService
 {
     private TmdbService $tmdb;
+    private AiBlogService $ai;
 
-    public function __construct(TmdbService $tmdb)
+    public function __construct(TmdbService $tmdb, AiBlogService $ai)
     {
         $this->tmdb = $tmdb;
+        $this->ai = $ai;
     }
 
     public function generate(): ?Post
     {
-        $types = ['birthday', 'trending', 'anniversary', 'upcoming', 'recommendation'];
-        $type = $types[array_rand($types)];
+        $pick = $this->pickTopic();
+        if (!$pick) return null;
 
+        if ($this->ai->isConfigured()) {
+            $post = $this->generateWithAi($pick);
+            if ($post) return $post;
+        }
+
+        return $this->generateTemplate($pick['type']);
+    }
+
+    private function generateWithAi(array $pick): ?Post
+    {
+        $result = $this->ai->generateBlogPost($pick['topic']);
+        if (!$result) return null;
+
+        $imageUrl = $this->ai->searchImage($result['image_query'] ?? $pick['image_query'] ?? $pick['topic']);
+
+        return Post::create([
+            'title' => $result['title'],
+            'category' => $result['category'] ?? 'Liste',
+            'excerpt' => $result['excerpt'] ?? '',
+            'body' => $result['body'],
+            'image_url' => $imageUrl,
+            'read_time' => max(3, (int) ceil(mb_strlen($result['body']) / 1500)),
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+    }
+
+    private function pickTopic(): ?array
+    {
+        $types = ['trending', 'upcoming', 'mood', 'anniversary', 'birthday'];
+        $start = now()->dayOfYear % count($types);
+
+        for ($i = 0; $i < count($types); $i++) {
+            $type = $types[($start + $i) % count($types)];
+            $pick = match ($type) {
+                'birthday' => $this->birthdayTopic(),
+                'trending' => $this->trendingTopic(),
+                'anniversary' => $this->anniversaryTopic(),
+                'upcoming' => $this->upcomingTopic(),
+                'mood' => $this->moodTopic(),
+                default => null,
+            };
+            if ($pick) {
+                $pick['type'] = $type;
+                return $pick;
+            }
+        }
+
+        return null;
+    }
+
+    private function birthdayTopic(): ?array
+    {
+        $today = now()->format('m-d');
+        $birthdays = collect(config('cinema-calendar'))
+            ->filter(fn($p) => substr($p['birthday'], 5) === $today)
+            ->values();
+
+        if ($birthdays->isEmpty()) return null;
+
+        $names = $birthdays->take(4)->map(fn($p) => $p['name'] . ' (' . \Carbon\Carbon::parse($p['birthday'])->age . ' yaş)')->implode(', ');
+
+        return [
+            'topic' => "Bugün (" . now()->format('d.m.Y') . ") doğan sinema ünlüleri: {$names}. Bu isimlerin kariyerlerini, unutulmaz filmlerini sinema tarihine etkilerini anlatan bir yazı yaz.",
+            'image_query' => $birthdays[0]['name'],
+        ];
+    }
+
+    private function trendingTopic(): ?array
+    {
+        $trending = $this->tmdb->getTrending('week');
+        $titles = collect($trending)->take(8)->pluck('title')->filter()->values();
+        if ($titles->isEmpty()) return null;
+
+        return [
+            'topic' => "Bu hafta dünya çapında en çok konuşulan ve trend olan filmler: " . $titles->implode(', ') . ". Bu filmleri ve neden popüler olduklarını analiz eden bir yazı yaz.",
+            'image_query' => $titles[0],
+        ];
+    }
+
+    private function anniversaryTopic(): ?array
+    {
+        $today = now();
+        $movies = $this->tmdb->discoverMovies([
+            'primary_release_date.gte' => $today->format('Y-m-d'),
+            'primary_release_date.lte' => $today->format('Y-m-d'),
+            'sort_by' => 'vote_count.desc',
+        ]);
+        $titles = collect($movies)->take(6)->pluck('title')->filter()->values();
+        if ($titles->isEmpty()) return null;
+
+        return [
+            'topic' => "Sinema tarihinde bugün (" . $today->format('d.m.Y') . ") vizyona giren filmler: " . $titles->implode(', ') . ". Bu filmlerin bugünkü kültürel etkilerini ve miraslarını anlatan bir yazı yaz.",
+            'image_query' => $titles[0],
+        ];
+    }
+
+    private function upcomingTopic(): ?array
+    {
+        $upcoming = $this->tmdb->getUpcoming();
+        $list = collect($upcoming)->take(6);
+        if ($list->isEmpty()) return null;
+
+        $titled = $list->map(fn($m) => ($m['title'] ?? '') . ' (' . substr($m['release_date'] ?? '', 0, 4) . ')')->filter()->values();
+
+        return [
+            'topic' => "Yakında vizyona girecek en çok beklenen filmler: " . $titled->implode(', ') . ". Bu filmleri, yönetmenlerini ve beklentileri anlatan bir tanıtım yazısı yaz.",
+            'image_query' => $list[0]['title'] ?? null,
+        ];
+    }
+
+    private function moodTopic(): ?array
+    {
+        $moods = config('moods');
+        if (empty($moods)) return null;
+
+        $moodSlug = array_rand($moods);
+        $mood = $moods[$moodSlug];
+
+        return [
+            'topic' => "{$mood['label']} ruh halindeyken izlenecek en iyi filmler. {$mood['description']} filmler öneren, neden bu filmlerin bu ruh haline uyduğunu açıklayan bir yazı yaz.",
+            'image_query' => null,
+        ];
+    }
+
+    private function generateTemplate(string $type): ?Post
+    {
         return match ($type) {
             'birthday' => $this->generateBirthdayPost(),
             'trending' => $this->generateTrendingPost(),
             'anniversary' => $this->generateAnniversaryPost(),
             'upcoming' => $this->generateUpcomingPost(),
-            'recommendation' => $this->generateRecommendationPost(),
+            'mood' => $this->generateRecommendationPost(),
             default => null,
         };
     }

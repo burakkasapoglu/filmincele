@@ -38,4 +38,18 @@ class TrackPageViews
 
         return $response;
     }
+
+    public function terminate($request, $response): void
+    {
+        try {
+            if ($request->isMethod('GET')
+                && !str_starts_with($request->path(), 'api')
+                && !str_starts_with($request->path(), 'livewire')
+                && !str_starts_with($request->path(), 'cron')) {
+                app(\App\Services\DailyBlogScheduler::class)->runIfNeeded();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('daily blog tetikleyici: ' . $e->getMessage());
+        }
+    }
 }

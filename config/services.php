@@ -55,6 +55,10 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
+    'daily_blog' => [
+        'token' => env('DAILY_BLOG_TOKEN'),
+    ],
+
     'recaptcha' => [
         'site_key' => env('RECAPTCHA_SITE_KEY'),
         'secret' => env('RECAPTCHA_SECRET'),

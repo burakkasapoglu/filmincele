@@ -75,6 +75,14 @@ Route::get('/robots.txt', function () {
     return response("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /profil\nDisallow: /giris\nDisallow: /kayit\n\nSitemap: " . url('/sitemap_index.xml'), 200)->header('Content-Type', 'text/plain');
 });
 
+Route::get('/cron/gunluk-yazi/{token}', function (string $token) {
+    if (!config('services.daily_blog.token') || !hash_equals(config('services.daily_blog.token'), $token)) {
+        abort(404);
+    }
+    app(\App\Services\DailyBlogScheduler::class)->runIfNeeded();
+    return response('OK');
+});
+
 Route::get('/kvkk', function () {
     return view('kvkk');
 })->name('kvkk');
