@@ -59,6 +59,72 @@ class AdminController extends Controller
         ]);
     }
 
+    public function contentIdeas()
+    {
+        $service = app(\App\Services\ContentIdeaService::class);
+        $ideas = $service->getUpcoming(21);
+
+        $existing = \App\Models\ContentIdea::whereIn('tmdb_ref', $ideas->pluck('tmdb_ref'))
+            ->with('post')
+            ->get()
+            ->keyBy(fn ($e) => $e->type . ':' . $e->tmdb_ref);
+
+        $ideas = $ideas->map(function ($idea) use ($existing) {
+            $key = $idea['type'] . ':' . $idea['tmdb_ref'];
+            $row = $existing->get($key);
+            $idea['status'] = $row?->status ?? 'new';
+            $idea['post'] = $row?->post;
+            $idea['notes'] = $row?->notes;
+            return $idea;
+        });
+
+        return view('admin.content-ideas', [
+            'ideas' => $ideas,
+            'stats' => [
+                'new' => $ideas->where('status', 'new')->count(),
+                'planned' => $ideas->where('status', 'planned')->count(),
+                'published' => $ideas->where('status', 'published')->count(),
+                'dismissed' => $ideas->where('status', 'dismissed')->count(),
+            ],
+        ]);
+    }
+
+    public function updateContentIdeaStatus(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'type' => 'required|string|max:50',
+            'tmdb_ref' => 'required|string|max:100',
+            'status' => 'required|in:new,planned,published,dismissed',
+            'suggestion' => 'nullable|string',
+            'event_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        \App\Models\ContentIdea::updateOrCreate(
+            ['type' => $data['type'], 'tmdb_ref' => $data['tmdb_ref']],
+            [
+                'title' => $data['title'],
+                'suggestion' => $data['suggestion'] ?? null,
+                'event_date' => $data['event_date'] ?? null,
+                'status' => $data['status'],
+                'notes' => $data['notes'] ?? null,
+            ]
+        );
+
+        return back()->with('success', 'Fikir güncellendi: ' . $data['title']);
+    }
+
+    public function generateFromIdea(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string',
+            'suggestion' => 'nullable|string',
+        ]);
+
+        return redirect()->route('admin.posts.create', ['ai_topic' => $data['suggestion'] ?: $data['title']]);
+    }
+
     public function users()
     {
         return view('admin.users', [

@@ -181,6 +181,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/uyeler', [\App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');
+    Route::get('/icerik-fikirleri', [\App\Http\Controllers\Admin\AdminController::class, 'contentIdeas'])->name('ideas');
+    Route::post('/icerik-fikirleri/durum', [\App\Http\Controllers\Admin\AdminController::class, 'updateContentIdeaStatus'])->name('ideas.status');
+    Route::post('/icerik-fikirleri/uret', [\App\Http\Controllers\Admin\AdminController::class, 'generateFromIdea'])->name('ideas.generate');
+
     Route::get('/uyeler/{user}', [\App\Http\Controllers\Admin\AdminController::class, 'userDetail'])->name('users.show');
     Route::post('/uyeler/{user}/toggle-admin', [\App\Http\Controllers\Admin\AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::get('/blog', [\App\Http\Controllers\Admin\AdminController::class, 'posts'])->name('posts');

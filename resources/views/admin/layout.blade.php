@@ -78,6 +78,18 @@
                     @endif
                 </a>
 
+                <a href="{{ route('admin.ideas') }}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200
+                          {{ request()->routeIs('admin.ideas*')
+                              ? 'bg-rose-600/20 text-rose-400 font-medium border border-rose-600/20 shadow-lg shadow-rose-600/5'
+                              : 'text-gray-400 hover:text-white hover:bg-gray-800/50' }}">
+                    <span class="text-lg flex-shrink-0">💡</span>
+                    <span>İçerik Fikirleri</span>
+                    @if(request()->routeIs('admin.ideas*'))
+                        <span class="ml-auto w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                    @endif
+                </a>
+
                 <div class="border-t border-gray-800/50 my-4"></div>
                 <p class="text-gray-600 text-xs uppercase tracking-wider px-3 py-2 font-semibold">Bağlantılar</p>
 
