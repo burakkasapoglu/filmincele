@@ -17,6 +17,9 @@
     @if(session('success'))
         <div class="mb-4 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm">✓ {{ session('success') }}</div>
     @endif
+    @if(session('idea_error'))
+        <div class="mb-4 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm">✗ {{ session('idea_error') }}</div>
+    @endif
 
     <div class="space-y-3">
         @foreach($ideas as $idea)
@@ -28,6 +31,7 @@
                     'dismissed' => 'bg-gray-900/50 text-gray-600',
                 ];
                 $statusLabels = ['new' => 'Yeni', 'planned' => 'Planlandı', 'published' => 'Paylaşıldı', 'dismissed' => 'Geçildi'];
+                $videoScript = $idea['script'] ?? null ? json_decode($idea['script'], true) : null;
             @endphp
             <div class="bg-gray-900 rounded-2xl border {{ $idea['status'] === 'dismissed' ? 'border-gray-800/30 opacity-60' : 'border-gray-800/50' }} p-5 {{ $idea['status'] === 'planned' ? 'ring-1 ring-amber-600/20' : '' }}">
                 <div class="flex flex-wrap items-start justify-between gap-3">
@@ -55,8 +59,13 @@
                     <form method="POST" action="{{ route('admin.ideas.generate') }}" class="inline">
                         @csrf
                         <input type="hidden" name="title" value="{{ $idea['title'] }}">
+                        <input type="hidden" name="type" value="{{ $idea['type'] }}">
+                        <input type="hidden" name="tmdb_ref" value="{{ $idea['tmdb_ref'] }}">
                         <input type="hidden" name="suggestion" value="{{ $idea['suggestion'] ?? '' }}">
-                        <button class="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition">✨ AI ile Yaz</button>
+                        <input type="hidden" name="event_date" value="{{ $idea['event_date'] ?? '' }}">
+                        <button class="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition">
+                            {{ $videoScript ? '🔄 Metni Yenile' : '🎬 Video Metni Üret' }}
+                        </button>
                     </form>
 
                     @foreach(['planned' => '📅 Planla', 'published' => '✓ Paylaşıldı', 'dismissed' => '→ Geç'] as $status => $label)
@@ -74,6 +83,48 @@
                         @endif
                     @endforeach
                 </div>
+
+                @if($videoScript)
+                    @php $scriptId = 'script-' . md5($idea['tmdb_ref']); @endphp
+                    <details class="mt-4 group">
+                        <summary class="cursor-pointer text-xs text-rose-400 hover:text-rose-300 select-none">
+                            🎬 Video metni hazır — {{ $videoScript['video_title'] ?? '' }} <span class="text-gray-500">(aç/kapa)</span>
+                        </summary>
+                        <div class="mt-3 bg-gray-950/60 border border-gray-800/50 rounded-xl p-5 space-y-4">
+                            @if(!empty($videoScript['hook']))
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider text-amber-400 mb-1">⚡ Hook (ilk 3 saniye)</p>
+                                    <p class="text-white text-sm font-medium">{{ $videoScript['hook'] }}</p>
+                                </div>
+                            @endif
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">🗣️ Konuşma Metni</p>
+                                <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-line">{{ $videoScript['script'] }}</p>
+                            </div>
+                            @if(!empty($videoScript['visual_notes']))
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">🎥 Çekim Planı</p>
+                                    <ul class="text-gray-400 text-xs space-y-1 list-disc list-inside">
+                                        @foreach($videoScript['visual_notes'] as $note)
+                                            <li>{{ $note }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            @if(!empty($videoScript['sm_caption']) || !empty($videoScript['hashtags']))
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider text-cyan-400 mb-1">📱 Sosyal Medya Paylaşımı</p>
+                                    @if(!empty($videoScript['sm_caption']))
+                                        <p class="text-gray-300 text-sm">{{ $videoScript['sm_caption'] }}</p>
+                                    @endif
+                                    @if(!empty($videoScript['hashtags']))
+                                        <p class="text-blue-400/80 text-xs mt-2 leading-relaxed">{{ implode(' ', $videoScript['hashtags']) }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </details>
+                @endif
             </div>
         @endforeach
 

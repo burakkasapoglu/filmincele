@@ -75,6 +75,7 @@ class AdminController extends Controller
             $idea['status'] = $row?->status ?? 'new';
             $idea['post'] = $row?->post;
             $idea['notes'] = $row?->notes;
+            $idea['script'] = $row?->script;
             return $idea;
         });
 
@@ -119,10 +120,42 @@ class AdminController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string',
+            'type' => 'required|string|max:50',
+            'tmdb_ref' => 'required|string|max:100',
             'suggestion' => 'nullable|string',
+            'event_date' => 'nullable|date',
         ]);
 
-        return redirect()->route('admin.posts.create', ['ai_topic' => $data['suggestion'] ?: $data['title']]);
+        $video = app(\App\Services\VideoScriptService::class);
+
+        if (!$video->isConfigured()) {
+            return back()->with('idea_error', 'Gemini API anahtarı tanımlı değil.');
+        }
+
+        $topic = $data['suggestion'] ?: $data['title'];
+
+        try {
+            $script = $video->generateScript($data['title'] . '. ' . $topic);
+
+            if (!$script) {
+                return back()->with('idea_error', 'Video metni üretilemedi, tekrar deneyin.');
+            }
+
+            \App\Models\ContentIdea::updateOrCreate(
+                ['type' => $data['type'], 'tmdb_ref' => $data['tmdb_ref']],
+                [
+                    'title' => $data['title'],
+                    'suggestion' => $data['suggestion'] ?? null,
+                    'event_date' => $data['event_date'] ?? null,
+                    'script' => json_encode($script, JSON_UNESCAPED_UNICODE),
+                    'status' => 'planned',
+                ]
+            );
+
+            return back()->with('success', '🎬 Video metni üretildi: ' . $script['video_title']);
+        } catch (\Exception $e) {
+            return back()->with('idea_error', 'Hata: ' . $e->getMessage());
+        }
     }
 
     public function users()

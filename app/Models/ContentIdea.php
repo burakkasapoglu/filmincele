@@ -9,7 +9,7 @@ class ContentIdea extends Model
 {
     protected $fillable = [
         'title', 'suggestion', 'type', 'event_date', 'tmdb_ref',
-        'status', 'notes', 'post_id',
+        'status', 'notes', 'post_id', 'script',
     ];
 
     protected function casts(): array
