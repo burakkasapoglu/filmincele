@@ -46,7 +46,7 @@ KURALLAR:
 - Kategori: Haber, Liste, Analiz, Rehber'den birini sec
 - **SADECE JSON dondur**, baska metin ekleme
 
-JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Liste\"}";
+JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Liste\",\"image_query\":\"gonrsel icin aranacak film/oyuncu adi\"}";
 
         try {
             $response = Http::timeout(30)->post($this->baseUrl . '?key=' . $this->apiKey, [
@@ -233,19 +233,28 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
             $tmdb->searchMovies($query)
         );
 
+        $images = [];
         foreach ($candidates as $item) {
             $path = $item['poster_path'] ?? $item['profile_path'] ?? null;
             if ($path) {
-                return 'https://image.tmdb.org/t/p/w780' . $path;
+                $images[] = 'https://image.tmdb.org/t/p/w780' . $path;
             }
+            if (count($images) >= 8) break;
         }
 
+        if (!empty($images)) {
+            // Ayni sorgu icin deterministik ama farkli gunlerde farkli resim
+            return $images[now()->dayOfYear % count($images)];
+        }
+
+        $popular = [];
         foreach ($tmdb->getPopularMovies() as $item) {
             if (!empty($item['poster_path'])) {
-                return 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
+                $popular[] = 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
             }
+            if (count($popular) >= 8) break;
         }
 
-        return null;
+        return $popular[now()->dayOfYear % max(count($popular), 1)] ?? null;
     }
 }

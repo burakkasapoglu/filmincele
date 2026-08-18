@@ -184,6 +184,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->name('admin.')->g
     Route::get('/icerik-fikirleri', [\App\Http\Controllers\Admin\AdminController::class, 'contentIdeas'])->name('ideas');
     Route::post('/icerik-fikirleri/durum', [\App\Http\Controllers\Admin\AdminController::class, 'updateContentIdeaStatus'])->name('ideas.status');
     Route::post('/icerik-fikirleri/uret', [\App\Http\Controllers\Admin\AdminController::class, 'generateFromIdea'])->name('ideas.generate');
+    Route::post('/icerik-fikirleri/blog', [\App\Http\Controllers\Admin\AdminController::class, 'generateBlogFromIdea'])->name('ideas.blog');
 
     Route::get('/uyeler/{user}', [\App\Http\Controllers\Admin\AdminController::class, 'userDetail'])->name('users.show');
     Route::post('/uyeler/{user}/toggle-admin', [\App\Http\Controllers\Admin\AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');

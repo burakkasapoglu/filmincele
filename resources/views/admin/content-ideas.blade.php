@@ -64,8 +64,14 @@
                         <input type="hidden" name="suggestion" value="{{ $idea['suggestion'] ?? '' }}">
                         <input type="hidden" name="event_date" value="{{ $idea['event_date'] ?? '' }}">
                         <button class="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition">
-                            {{ $videoScript ? '🔄 Metni Yenile' : '🎬 Video Metni Üret' }}
+                            {{ $videoScript ? '🔄 Video Metnini Yenile' : '🎬 Video Metni Üret' }}
                         </button>
+                    </form>
+
+                    <form method="POST" action="{{ route('admin.ideas.blog') }}" class="inline">
+                        @csrf
+                        <input type="hidden" name="ai_topic" value="{{ $idea['title'] }}. {{ $idea['suggestion'] ?? '' }}">
+                        <button class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition">📝 Blog Yazısı Üret</button>
                     </form>
 
                     @foreach(['planned' => '📅 Planla', 'published' => '✓ Paylaşıldı', 'dismissed' => '→ Geç'] as $status => $label)

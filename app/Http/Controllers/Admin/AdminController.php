@@ -158,6 +158,38 @@ class AdminController extends Controller
         }
     }
 
+    public function generateBlogFromIdea(Request $request)
+    {
+        $request->validate(['ai_topic' => 'required|string|max:500']);
+
+        $ai = app(\App\Services\AiBlogService::class);
+
+        if (!$ai->isConfigured()) {
+            return back()->with('idea_error', 'Gemini API anahtarı tanımlı değil.');
+        }
+
+        try {
+            $result = $ai->generateBlogPost($request->ai_topic);
+
+            if (!$result) {
+                return back()->with('idea_error', 'Blog yazısı üretilemedi, tekrar deneyin.');
+            }
+
+            $imageUrl = $ai->searchImage($result['image_query'] ?? $request->ai_topic);
+
+            return redirect()->route('admin.posts.create')->with([
+                'ai_title' => $result['title'],
+                'ai_excerpt' => $result['excerpt'] ?? '',
+                'ai_body' => $result['body'],
+                'ai_category' => $result['category'] ?? 'Liste',
+                'ai_image_url' => $imageUrl,
+                'ai_topic' => $request->ai_topic,
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('idea_error', 'Hata: ' . $e->getMessage());
+        }
+    }
+
     public function users()
     {
         return view('admin.users', [
