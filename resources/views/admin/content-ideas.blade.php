@@ -4,14 +4,27 @@
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-white">💡 İçerik Fikirleri</h1>
-            <p class="text-gray-500 text-sm mt-1">Önümüzdeki 3 hafta: doğum günleri, yıl dönümleri, trendler ve içerik fikirleri</p>
+            <p class="text-gray-500 text-sm mt-1">Öneriler, çekim planlaması ve yayın takibi</p>
         </div>
-        <div class="flex gap-2 text-xs">
-            <span class="px-3 py-1.5 bg-gray-800 rounded-lg text-gray-400">Yeni: <b class="text-white">{{ $stats['new'] }}</b></span>
-            <span class="px-3 py-1.5 bg-amber-600/10 border border-amber-600/20 rounded-lg text-amber-400">Planlandı: <b>{{ $stats['planned'] }}</b></span>
-            <span class="px-3 py-1.5 bg-emerald-600/10 border border-emerald-600/20 rounded-lg text-emerald-400">Paylaşıldı: <b>{{ $stats['published'] }}</b></span>
-            <span class="px-3 py-1.5 bg-gray-800/50 rounded-lg text-gray-500">Geçildi: <b>{{ $stats['dismissed'] }}</b></span>
-        </div>
+    </div>
+
+    {{-- Tabs --}}
+    <div class="flex gap-2 mb-5 border-b border-gray-800/50 pb-px">
+        @php
+            $tabs = [
+                'suggestions' => '💡 Öneriler',
+                'planned' => '📅 Planlananlar (' . $counts['planned'] . ')',
+                'published' => '✅ Paylaşılanlar (' . $counts['published'] . ')',
+            ];
+        @endphp
+        @foreach($tabs as $key => $label)
+            <a href="{{ route('admin.ideas', ['tab' => $key]) }}"
+               class="px-4 py-2.5 text-sm rounded-t-xl transition {{ $tab === $key
+                   ? 'bg-gray-900 text-white font-medium border-t border-x border-gray-800/50'
+                   : 'text-gray-400 hover:text-white' }}">
+                {{ $label }}
+            </a>
+        @endforeach
     </div>
 
     @if(session('success'))
@@ -22,7 +35,7 @@
     @endif
 
     <div class="space-y-3">
-        @foreach($ideas as $idea)
+        @forelse($ideas as $idea)
             @php
                 $statusColors = [
                     'new' => 'bg-gray-800 text-gray-400',
@@ -31,17 +44,21 @@
                     'dismissed' => 'bg-gray-900/50 text-gray-600',
                 ];
                 $statusLabels = ['new' => 'Yeni', 'planned' => 'Planlandı', 'published' => 'Paylaşıldı', 'dismissed' => 'Geçildi'];
-                $videoScript = $idea['script'] ?? null ? json_decode($idea['script'], true) : null;
+                $videoScript = !empty($idea['script']) ? json_decode($idea['script'], true) : null;
+                $isDue = !empty($idea['event_date']) && $idea['event_date'] <= now()->toDateString() && $idea['status'] === 'planned';
             @endphp
-            <div class="bg-gray-900 rounded-2xl border {{ $idea['status'] === 'dismissed' ? 'border-gray-800/30 opacity-60' : 'border-gray-800/50' }} p-5 {{ $idea['status'] === 'planned' ? 'ring-1 ring-amber-600/20' : '' }}">
+            <div class="bg-gray-900 rounded-2xl border {{ $isDue ? 'border-amber-500/40 ring-1 ring-amber-500/20' : 'border-gray-800/50' }} p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2 mb-1.5">
                             <span class="text-lg">{{ $idea['icon'] }}</span>
                             <h3 class="text-white font-medium">{{ $idea['title'] }}</h3>
-                            <span class="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-md {{ $statusColors[$idea['status']] }}">{{ $statusLabels[$idea['status']] }}</span>
+                            <span class="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-md {{ $statusColors[$idea['status']] ?? '' }}">{{ $statusLabels[$idea['status']] ?? $idea['status'] }}</span>
                             @if($idea['when_label'] ?? null)
-                                <span class="text-rose-400/80 text-xs">📅 {{ $idea['when_label'] }}</span>
+                                <span class="{{ $isDue ? 'text-amber-400 font-semibold' : 'text-rose-400/80' }} text-xs">📅 {{ $isDue ? 'ÇEKİM GÜNÜ — ' : '' }}{{ $idea['when_label'] }}</span>
+                            @endif
+                            @if($videoScript)
+                                <span class="text-[10px] bg-rose-600/10 text-rose-400 px-2 py-0.5 rounded-md border border-rose-600/20">🎬 Video metni hazır</span>
                             @endif
                         </div>
                         @if($idea['suggestion'] ?? null)
@@ -68,14 +85,16 @@
                         </button>
                     </form>
 
-                    <form method="POST" action="{{ route('admin.ideas.blog') }}" class="inline">
-                        @csrf
-                        <input type="hidden" name="ai_topic" value="{{ $idea['title'] }}. {{ $idea['suggestion'] ?? '' }}">
-                        <button class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition">📝 Blog Yazısı Üret</button>
-                    </form>
+                    @if($tab === 'suggestions')
+                        <form method="POST" action="{{ route('admin.ideas.blog') }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="ai_topic" value="{{ $idea['title'] }}. {{ $idea['suggestion'] ?? '' }}">
+                            <button class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition">📝 Blog Yazısı Üret</button>
+                        </form>
+                    @endif
 
                     @foreach(['planned' => '📅 Planla', 'published' => '✓ Paylaşıldı', 'dismissed' => '→ Geç'] as $status => $label)
-                        @if($idea['status'] !== $status)
+                        @if(($idea['status'] ?? 'new') !== $status)
                             <form method="POST" action="{{ route('admin.ideas.status') }}" class="inline">
                                 @csrf
                                 <input type="hidden" name="title" value="{{ $idea['title'] }}">
@@ -91,8 +110,8 @@
                 </div>
 
                 @if($videoScript)
-                    @php $scriptId = 'script-' . md5($idea['tmdb_ref']); @endphp
-                    <details class="mt-4 group">
+                    @php $openByDefault = $tab !== 'suggestions'; @endphp
+                    <details class="mt-4 group" {{ $openByDefault ? 'open' : '' }}>
                         <summary class="cursor-pointer text-xs text-rose-400 hover:text-rose-300 select-none">
                             🎬 Video metni hazır — {{ $videoScript['video_title'] ?? '' }} <span class="text-gray-500">(aç/kapa)</span>
                         </summary>
@@ -132,13 +151,17 @@
                     </details>
                 @endif
             </div>
-        @endforeach
-
-        @if($ideas->isEmpty())
+        @empty
             <div class="bg-gray-900 rounded-2xl border border-gray-800/50 p-10 text-center text-gray-500">
-                Şu an için öneri üretilemedi.
+                @if($tab === 'planned')
+                    Henüz planlanmış fikir yok. Öneriler sekmesinden 📅 Planla veya 🎬 Video Metni Üret ile planlamaya ekleyin.
+                @elseif($tab === 'published')
+                    Henüz paylaşılmış içerik yok. Çekimini yaptıktan sonra fikri ✓ Paylaşıldı işaretleyin.
+                @else
+                    Şu an için öneri üretilemedi.
+                @endif
             </div>
-        @endif
+        @endforelse
     </div>
 </div>
 @endsection

@@ -59,33 +59,68 @@ class AdminController extends Controller
         ]);
     }
 
-    public function contentIdeas()
+    public function contentIdeas(Request $request)
     {
+        $tab = $request->query('tab', 'suggestions');
         $service = app(\App\Services\ContentIdeaService::class);
-        $ideas = $service->getUpcoming(21);
 
-        $existing = \App\Models\ContentIdea::whereIn('tmdb_ref', $ideas->pluck('tmdb_ref'))
-            ->with('post')
-            ->get()
-            ->keyBy(fn ($e) => $e->type . ':' . $e->tmdb_ref);
+        if ($tab === 'planned' || $tab === 'published') {
+            $status = $tab === 'planned' ? 'planned' : 'published';
 
-        $ideas = $ideas->map(function ($idea) use ($existing) {
-            $key = $idea['type'] . ':' . $idea['tmdb_ref'];
-            $row = $existing->get($key);
-            $idea['status'] = $row?->status ?? 'new';
-            $idea['post'] = $row?->post;
-            $idea['notes'] = $row?->notes;
-            $idea['script'] = $row?->script;
-            return $idea;
-        });
+            $rows = \App\Models\ContentIdea::with('post')
+                ->where('status', $status)
+                ->orderByRaw('event_date IS NULL, event_date ASC')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'type' => $row->type,
+                        'icon' => match ($row->type) {
+                            'birthday' => '🎂',
+                            'anniversary' => '🎬',
+                            'trend' => '🔥',
+                            default => '💡',
+                        },
+                        'title' => $row->title,
+                        'suggestion' => $row->suggestion,
+                        'event_date' => $row->event_date?->toDateString(),
+                        'tmdb_ref' => $row->tmdb_ref,
+                        'status' => $row->status,
+                        'post' => $row->post,
+                        'script' => $row->script,
+                        'when_label' => $row->event_date
+                            ? $row->event_date->format('d.m.Y') . ' (' . $row->event_date->locale('tr')->translatedFormat('l') . ')'
+                            : 'Esnek',
+                    ];
+                });
+
+            $ideas = $rows;
+        } else {
+            $ideas = $service->getUpcoming(21);
+
+            $existing = \App\Models\ContentIdea::whereIn('tmdb_ref', $ideas->pluck('tmdb_ref'))
+                ->with('post')
+                ->get()
+                ->keyBy(fn ($e) => $e->type . ':' . $e->tmdb_ref);
+
+            $ideas = $ideas->map(function ($idea) use ($existing) {
+                $key = $idea['type'] . ':' . $idea['tmdb_ref'];
+                $row = $existing->get($key);
+                $idea['status'] = $row?->status ?? 'new';
+                $idea['post'] = $row?->post;
+                $idea['notes'] = $row?->notes;
+                $idea['script'] = $row?->script;
+                return $idea;
+            })->values();
+        }
 
         return view('admin.content-ideas', [
             'ideas' => $ideas,
-            'stats' => [
-                'new' => $ideas->where('status', 'new')->count(),
-                'planned' => $ideas->where('status', 'planned')->count(),
-                'published' => $ideas->where('status', 'published')->count(),
-                'dismissed' => $ideas->where('status', 'dismissed')->count(),
+            'tab' => $tab,
+            'counts' => [
+                'suggestions' => \App\Models\ContentIdea::where('status', 'new')->count(),
+                'planned' => \App\Models\ContentIdea::where('status', 'planned')->count(),
+                'published' => \App\Models\ContentIdea::where('status', 'published')->count(),
             ],
         ]);
     }
