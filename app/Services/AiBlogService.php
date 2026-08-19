@@ -34,17 +34,30 @@ class AiBlogService
     private function tryGemini(string $topic): ?array
     {
         $today = now()->format('d.m.Y');
-        $prompt = "Sen filmincele.com.tr sinema blog yazari. Bugün tarih: {$today}.
+        $linkableMovies = $this->findLinkableMovies($topic);
+
+        $linkSection = '';
+        if (!empty($linkableMovies)) {
+            $linkSection = "\n\nASAGIDAKI FILMLER SITENDE MEVCUT VE LINKLI ANILMALI (markDown linkleri hazir, oldugu gibi kullan):\n";
+            foreach ($linkableMovies as $lm) {
+                $slug = \Illuminate\Support\Str::slug($lm['title']);
+                $linkSection .= "- [{$lm['title']}](/film/{$lm['id']}-{$slug})\n";
+            }
+            $linkSection .= "Bu listeden en az " . min(5, count($linkableMovies)) . " tanesini yazinin icinde dogal sekilde kullan. Bu filmler haricinde baska filme link ekleme — sadece isimlerini kalin metin olarak yazabilirsin.";
+        }
+
+        $prompt = "Sen filmincele.com sinema blog yazari. Bugün tarih: {$today}.
 
 GÖREV: \"{$topic}\" konusunda SEO uyumlu, uzun ve detayli bir Turkce blog yazisi yaz.
 
 KURALLAR:
 - Baslik dikkat cekici olsun
 - En az 5-6 paragraf yaz
-- Film/dizi isimlerini **[Film Adi](/film/TMDB_ID-slug)** formatinda filmincele.com ic linkiyle ver
-- Linkler sadece filmincele.com'a olsun, baska siteye link verme (sinemablog.com, IMDB vb YASAK)
+- Film isimlerini **[Film Adi](/film/TMDB_ID-slug)** formatinda filmincele.com ic linkiyle ver
+- Verisi olmayan (yakinda cikacak, hic oyu olmayan) filmlere KESINLIKLE link verme, sadece kalin metin yaz
+- Linkler sadece filmincele.com'a olsun, baska siteye link verme (IMDB vb YASAK)
 - Kategori: Haber, Liste, Analiz, Rehber'den birini sec
-- **SADECE JSON dondur**, baska metin ekleme
+- **SADECE JSON dondur**, baska metin ekleme{$linkSection}
 
 JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icerik\",\"category\":\"Liste\",\"image_query\":\"gonrsel icin aranacak film/oyuncu adi\"}";
 
@@ -75,6 +88,42 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
             Log::warning('Gemini exception: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Konuyla ilgili TMDB'de verisi dolu (linklemeye layik) filmleri bul.
+     */
+    private function findLinkableMovies(string $topic, int $min = 10): array
+    {
+        $tmdb = app(TmdbService::class);
+
+        $pools = [
+            $tmdb->searchMulti($topic),
+            $tmdb->getTrending('week'),
+            $tmdb->getPopularMovies(),
+        ];
+
+        $seen = [];
+        $out = [];
+        foreach ($pools as $pool) {
+            foreach ($pool as $item) {
+                $id = $item['id'] ?? null;
+                $title = $item['title'] ?? $item['name'] ?? null;
+                if (!$id || !$title || isset($seen[$id])) continue;
+                $seen[$id] = true;
+
+                $votes = (int) ($item['vote_count'] ?? 0);
+                $hasOverview = !empty(trim((string) ($item['overview'] ?? '')));
+                $poster = !empty($item['poster_path']);
+
+                if ($votes >= 20 && $hasOverview && $poster) {
+                    $out[] = ['id' => $id, 'title' => $title];
+                }
+                if (count($out) >= $min) return $out;
+            }
+        }
+
+        return $out;
     }
 
     private function fixMovieLinks(string $body): string
