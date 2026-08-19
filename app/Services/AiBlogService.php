@@ -103,19 +103,39 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
         $tmdb = app(TmdbService::class);
 
         $details = $tmdb->getMovieDetails($claimedId);
-        if ($details && $this->titlesMatch($title, $details['title'] ?? '', $details['original_title'] ?? '')) {
+        if (
+            $details
+            && $this->titlesMatch($title, $details['title'] ?? '', $details['original_title'] ?? '')
+            && $this->hasEnoughData($details)
+        ) {
             return $claimedId;
         }
 
         $results = $tmdb->searchMovies($this->normalizeTitle($title));
-        $cleanTitle = mb_strtolower(trim($title));
         foreach ($results as $r) {
-            if ($this->titlesMatch($title, $r['title'] ?? '', $r['original_title'] ?? '')) {
+            if ($this->titlesMatch($title, $r['title'] ?? '', $r['original_title'] ?? '') && $this->hasEnoughData($r)) {
                 return $r['id'];
             }
         }
 
-        return $results[0]['id'] ?? null;
+        foreach ($results as $r) {
+            if ($this->hasEnoughData($r) && $this->slugifyTitle($r['title'] ?? '') === $this->slugifyTitle($title)) {
+                return $r['id'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Kayit gercekten dolu mu? Bos/istisna kayitlar (az oy, ozetsiz) linke layik degil.
+     */
+    private function hasEnoughData(array $movie): bool
+    {
+        $votes = (int) ($movie['vote_count'] ?? 0);
+        $hasOverview = !empty(trim((string) ($movie['overview'] ?? '')));
+
+        return $votes >= 20 && $hasOverview;
     }
 
     private function titlesMatch(string $linkTitle, string ...$candidates): bool
