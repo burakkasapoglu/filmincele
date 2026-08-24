@@ -90,6 +90,9 @@
                             <span class="text-yellow-400">★ {{ number_format($movie['vote_average'] ?? 0, 1) }}</span>
                         </div>
                         <div class="flex gap-2 mt-4 flex-wrap">
+                            @if($inCinemas)
+                                <span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-xs text-amber-400 font-semibold">🎟️ Sinemalarda</span>
+                            @endif
                             @foreach($movie['genres'] ?? [] as $genre)
                                 @php $moodSlug = config('genre-mood-map')[$genre['id']] ?? null; @endphp
                                 @if($moodSlug)
@@ -359,6 +362,22 @@
                         </div>
                     @endif
 
+                    {{-- In Cinemas --}}
+                    @if($inCinemas)
+                        <div class="bg-gray-900 rounded-xl p-6">
+                            <h3 class="text-white font-semibold mb-3">🎟️ Nereden İzlenir?</h3>
+                            <a href="{{ url('/vizyonda') }}"
+                               class="flex items-center gap-3 bg-amber-600/10 border border-amber-600/30 rounded-lg px-4 py-3 hover:bg-amber-600/20 transition group">
+                                <span class="text-2xl">🍿</span>
+                                <div>
+                                    <p class="text-amber-400 font-medium text-sm group-hover:text-amber-300 transition">Şu Anda Sinemalarda</p>
+                                    <p class="text-gray-400 text-xs mt-0.5">Bu film vizyonda — yakın sinemalardan bilet alabilirsiniz</p>
+                                </div>
+                                <span class="ml-auto text-amber-400/60 group-hover:translate-x-1 transition">→</span>
+                            </a>
+                        </div>
+                    @endif
+
                     {{-- Watch Providers --}}
                     @if(!empty($watchProviders))
                         @php
@@ -369,7 +388,7 @@
                         @endphp
                         @if($hasTR)
                             <div class="bg-gray-900 rounded-xl p-6">
-                                <h3 class="text-white font-semibold mb-3">🇹🇷 Nereden İzlenir?</h3>
+                                <h3 class="text-white font-semibold mb-3">🇹🇷 {{ $inCinemas ? 'Ayrıca İzleme Seçenekleri' : 'Nereden İzlenir?' }}</h3>
 
                                 @if(!empty($trStream))
                                     <div class="mb-3">
