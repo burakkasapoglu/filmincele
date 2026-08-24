@@ -148,7 +148,7 @@
                                                          alt="{{ $director['name'] }}"
                                                          class="w-full h-full object-cover" loading="lazy">
                                                 @else
-                                                    <div class="w-full h-full flex items-center justify-center text-xl text-gray-600">🎬</div>
+                                                    <img src="{{ cult_poster('rec-' . $rec['id']) }}" alt="{{ $rec['title'] }}" class="w-full h-full object-cover opacity-60">
                                                 @endif
                                             </div>
                                             <div>

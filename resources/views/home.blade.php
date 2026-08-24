@@ -52,7 +52,7 @@
                                          srcset="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }} 1x, https://image.tmdb.org/t/p/w342{{ $movie['poster_path'] }} 2x"
                                          class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center text-4xl text-gray-400">🎬</div>
+                                    <img src="{{ cult_poster($movie['id'] . '-' . ($movie['title'] ?? '')) }}" alt="Yakında" class="w-full h-full object-cover opacity-60" loading="lazy">
                                 @endif
                                 <div class="absolute top-2 left-2">
                                     <span class="px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-lg text-xs font-semibold text-white">★ {{ number_format($movie['vote_average'] ?? 0, 1) }}</span>
@@ -93,7 +93,7 @@
                                  class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                                  loading="lazy">
                         @else
-                            <div class="w-full h-full flex items-center justify-center text-4xl text-gray-400">🎬</div>
+                            <img src="{{ cult_poster($movie['id'] . '-' . ($movie['title'] ?? '')) }}" alt="Yakında" class="w-full h-full object-cover opacity-60" loading="lazy">
                         @endif
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-3">
                             <div class="flex items-center gap-1 text-yellow-400 text-sm">
@@ -125,7 +125,7 @@
                             <img src="{{ $postImg }}" alt="{{ $post->title }}" loading="lazy"
                                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         @else
-                            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-400">📝</div>
+                            <img src="{{ cult_poster('blog-' . $post->id) }}" alt="{{ $post->title }}" class="w-full h-full object-cover opacity-50" loading="lazy">
                         @endif
                     </div>
                     <div class="p-4">

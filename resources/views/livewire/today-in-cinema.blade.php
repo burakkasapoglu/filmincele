@@ -66,7 +66,7 @@
                                              class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                              loading="lazy">
                                     @else
-                                        <div class="w-full h-full flex items-center justify-center text-xl text-gray-400">🎬</div>
+                                        <img src="{{ cult_poster('anniv-' . $movie['id']) }}" alt="{{ $movie['title'] ?? '' }}" class="w-full h-full object-cover opacity-60" loading="lazy">
                                     @endif
                                 </div>
                                 <p class="text-gray-300 text-[10px] leading-tight line-clamp-2 group-hover:text-rose-400 transition">
