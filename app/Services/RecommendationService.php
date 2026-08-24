@@ -30,6 +30,60 @@ class RecommendationService
         });
     }
 
+    /**
+     * Film Turkiye'de izlenebilir mi? (platform/izle/kiralama/satinalma)
+     */
+    private function isWatchableInTurkey(array $movie): bool
+    {
+        $tmdb = $this->tmdb;
+        $id = (int) ($movie['id'] ?? 0);
+        if (!$id) return false;
+
+        $providers = Cache::remember('tr-providers:' . $id, 86400, function () use ($tmdb, $id) {
+            return $tmdb->getWatchProviders($id);
+        });
+
+        $tr = $providers['TR'] ?? [];
+        return !empty($tr['stream']) || !empty($tr['rent']) || !empty($tr['buy']);
+    }
+
+    /**
+     * Listeyi TR'de izlenebilir olanlara gore filtrele; yetmezse discover ile doldur.
+     */
+    private function filterWatchable(array $movies, int $limit): array
+    {
+        $watchable = [];
+        foreach ($movies as $m) {
+            if (count($watchable) >= $limit) break;
+            if ($this->isWatchableInTurkey($m)) {
+                $watchable[] = $m;
+            }
+        }
+
+        if (count($watchable) < $limit) {
+            // TR'de izlenebilen populer filmlerle doldur
+            $fillable = $this->tmdb->discoverMovies([
+                'with_watch_providers' => '8|119|337|1899|2|3|188|11|342',
+                'watch_region' => 'TR',
+                'sort_by' => 'popularity.desc',
+                'page' => 1,
+            ]);
+
+            $seen = array_column($watchable, 'id');
+            foreach ($fillable as $m) {
+                if (count($watchable) >= $limit) break;
+                if (!in_array($m['id'], $seen)) {
+                    $m['_reason'] = $m['_reason'] ?? 'Türkiye\'de izlenebilir';
+                    $m['_weight'] = $m['_weight'] ?? 1;
+                    $watchable[] = $m;
+                    $seen[] = $m['id'];
+                }
+            }
+        }
+
+        return array_slice($watchable, 0, $limit);
+    }
+
     private function generate(User $user, int $limit): array
     {
         $allItems = collect();
@@ -113,11 +167,12 @@ class RecommendationService
                 return true;
             })
             ->sortByDesc('_weight')
-            ->take($limit)
+            ->take($limit * 3)
             ->values()
             ->toArray();
 
-        return $unique;
+        // Sadece Turkiye'de izlenebilir olanlar
+        return $this->filterWatchable($unique, $limit);
     }
 
     private function getRatedTmdbIds(User $user): array
@@ -164,12 +219,19 @@ class RecommendationService
 
     private function getPopularFallback(int $limit): array
     {
-        return Cache::remember('popular_fallback', 3600, function () use ($limit) {
-            $movies = $this->tmdb->getPopularMovies(rand(1, 3));
+        return Cache::remember('popular_fallback_tr', 3600, function () use ($limit) {
+            $movies = $this->tmdb->discoverMovies([
+                'with_watch_providers' => '8|119|337|1899|2|3|188|11|342',
+                'watch_region' => 'TR',
+                'sort_by' => 'popularity.desc',
+                'page' => rand(1, 3),
+            ]);
+
             foreach ($movies as &$m) {
                 $m['_reason'] = 'Popüler öneri';
                 $m['_weight'] = 1;
             }
+
             return array_slice($movies, 0, $limit);
         });
     }
