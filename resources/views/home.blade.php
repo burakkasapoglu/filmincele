@@ -5,12 +5,13 @@
 <div class="min-h-screen bg-gray-950">
     {{-- Hero --}}
     <div class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-rose-900/20 via-gray-950 to-indigo-900/20"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-900/15 via-gray-950 to-gray-900/20"></div>
+        <div class="absolute inset-0 cinema-glow"></div>
         <x-falling-pattern />
         <div class="relative max-w-7xl mx-auto px-4 pt-20 pb-12 text-center">
             <h1 class="animate-fade-up text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
                 Ruh haline göre<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-purple-400">film & dizi keşfet</span>
+                <span class="gold-shimmer">film & dizi keşfet</span>
             </h1>
             <p class="animate-fade-up-delay-1 text-lg text-gray-400 max-w-2xl mx-auto mb-8">
                 Nasıl hissediyorsun? Sana özel film önerileri için bir ruh hali seç, keşfetmeye başla.
@@ -83,7 +84,7 @@
         @endphp
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @foreach(array_slice($trending, 0, 12) as $movie)
-                <a href="{{ url('/film/' . $movie['id'] . '-' . \Illuminate\Support\Str::slug($movie['title'] ?? $movie['name'] ?? '')) }}" class="group block">
+                <a href="{{ url('/film/' . $movie['id'] . '-' . \Illuminate\Support\Str::slug($movie['title'] ?? $movie['name'] ?? '')) }}" class="group block cinema-card">
                     <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-800">
                         @if($movie['poster_path'])
                             <img src="https://image.tmdb.org/t/p/w185{{ $movie['poster_path'] }}"
@@ -117,7 +118,7 @@
         @php $latestPosts = \Illuminate\Support\Facades\Cache::remember('home:latest-posts', 900, fn () => \App\Models\Post::where('is_published', true)->latest()->take(6)->get()); @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($latestPosts as $post)
-                <a href="{{ url('/blog/' . $post->slug) }}" class="group bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden hover:border-gray-700 transition">
+                <a href="{{ url('/blog/' . $post->slug) }}" class="cinema-card group bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden hover:border-amber-600/40 transition">
                     <div class="aspect-[16/9] bg-gray-800 overflow-hidden">
                         @if($post->image_url)
                             @php $postImg = str_replace(['/w1280/', '/w780/'], '/w500/', $post->image_url); @endphp
