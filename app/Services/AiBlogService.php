@@ -311,19 +311,37 @@ JSON format: {\"title\":\"Baslik\",\"excerpt\":\"ozet\",\"body\":\"markdown icer
             if (count($images) >= 8) break;
         }
 
-        if (!empty($images)) {
-            // Ayni sorgu icin deterministik ama farkli gunlerde farkli resim
-            return $images[now()->dayOfYear % count($images)];
-        }
-
-        $popular = [];
-        foreach ($tmdb->getPopularMovies() as $item) {
-            if (!empty($item['poster_path'])) {
-                $popular[] = 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
+        // Arama bos/general basliga takildiysa: trending havuzundan sec
+        if (empty($images)) {
+            foreach ($tmdb->getTrending('week') as $item) {
+                if (!empty($item['poster_path'])) {
+                    $images[] = 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
+                }
+                if (count($images) >= 8) break;
             }
-            if (count($popular) >= 8) break;
         }
 
-        return $popular[now()->dayOfYear % max(count($popular), 1)] ?? null;
+        if (empty($images)) {
+            foreach ($tmdb->getPopularMovies() as $item) {
+                if (!empty($item['poster_path'])) {
+                    $images[] = 'https://image.tmdb.org/t/p/w780' . $item['poster_path'];
+                }
+                if (count($images) >= 8) break;
+            }
+        }
+
+        if (empty($images)) return null;
+
+        // Son kullanilan gorselleri atla (ayni gun ayni resim tekrari olmasin)
+        $recent = \App\Models\Post::whereNotNull('image_url')
+            ->orderByDesc('id')
+            ->limit(count($images))
+            ->pluck('image_url')
+            ->all();
+
+        $fresh = array_values(array_diff($images, $recent));
+        $pool = !empty($fresh) ? $fresh : $images;
+
+        return $pool[now()->dayOfYear % count($pool)];
     }
 }

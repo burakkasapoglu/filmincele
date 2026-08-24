@@ -51,6 +51,14 @@ class BlogGeneratorService
     private function pickTopic(): ?array
     {
         $types = ['trending', 'upcoming', 'mood', 'anniversary', 'birthday'];
+
+        // Son 3 gunun konu tiplerini disarida birak: ayni tur 3 kez ust uste gelmesin
+        $recentTypes = Post::where('created_at', '>=', now()->subDays(3))
+            ->orderByDesc('id')
+            ->limit(3)
+            ->pluck('category')
+            ->all();
+
         $start = now()->dayOfYear % count($types);
 
         for ($i = 0; $i < count($types); $i++) {
