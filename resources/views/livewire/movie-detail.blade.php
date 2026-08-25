@@ -6,9 +6,12 @@
             '@context' => 'https://schema.org',
             '@type' => 'Movie',
             'name' => $movie['title'] ?? '',
+            'alternateName' => $movie['original_title'] ?? '',
             'description' => $movie['overview'] ?? '',
             'dateCreated' => $movie['release_date'] ?? '',
             'image' => $ldImage,
+            'url' => url()->current(),
+            'sameAs' => ['https://filmincele.com'],
         ];
         if (!empty($movie['genres'])) {
             $ldJson['genre'] = array_column($movie['genres'], 'name');

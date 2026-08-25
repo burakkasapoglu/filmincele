@@ -105,7 +105,90 @@ Route::get('/kayit', function () {
 });
 
 Route::get('/robots.txt', function () {
-    return response("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /profil\nDisallow: /giris\nDisallow: /kayit\n\nSitemap: " . url('/sitemap_index.xml'), 200)->header('Content-Type', 'text/plain');
+    $content = "User-agent: *\n"
+        . "Allow: /\n"
+        . "Disallow: /admin\n"
+        . "Disallow: /profil\n"
+        . "Disallow: /giris\n"
+        . "Disallow: /kayit\n"
+        . "Disallow: /livewire\n\n"
+        // AI crawlers — kaynak olarak gosterilmek icin acik
+        . "User-agent: GPTBot\nAllow: /\n\n"
+        . "User-agent: OAI-SearchBot\nAllow: /\n\n"
+        . "User-agent: ChatGPT-User\nAllow: /\n\n"
+        . "User-agent: ClaudeBot\nAllow: /\n\n"
+        . "User-agent: Claude-SearchBot\nAllow: /\n\n"
+        . "User-agent: Google-Extended\nAllow: /\n\n"
+        . "User-agent: PerplexityBot\nAllow: /\n\n"
+        . "User-agent: Applebot-Extended\nAllow: /\n\n"
+        . "User-agent: meta-externalagent\nAllow: /\n\n"
+        . "Sitemap: " . url('/sitemap_index.xml') . "\n"
+        . "Sitemap: " . url('/llms-sitemap.xml') . "\n";
+
+    return response($content, 200)->header('Content-Type', 'text/plain');
+});
+
+Route::get('/llms.txt', function () {
+    $baseUrl = url('/');
+
+    $content = "# Filmincele\n\n"
+        . "> Filmincele — Türkçe film ve dizi keşif platformu. Ruh haline göre öneriler, film puanlama, izleme listeleri, nereden izlenir bilgisi ve sinema haberleri.\n\n"
+        . "Site: {$baseUrl}\n"
+        . "Dil: Türkçe\n\n"
+        . "## İçerik\n\n"
+        . "- [Ana Sayfa]({$baseUrl}) — Ruh haline göre film ve dizi keşfi\n"
+        . "- [Vizyondaki Filmler]({$baseUrl}/vizyonda) — Sinemalarda oynayan filmler\n"
+        . "- [Yakında Vizyonda]({$baseUrl}/yakinda) — Yakında çıkacak filmler\n"
+        . "- [Keşfet]({$baseUrl}/kesfet) — Türlere göre film keşfi\n"
+        . "- [Blog]({$baseUrl}/blog) — Sinema yazıları, listeler ve analizler\n"
+        . "- [Karşılaştır]({$baseUrl}/karsilastir) — Film karşılaştırma aracı\n\n"
+        . "## Film Sayfaları\n\n"
+        . "Her film sayfası şu bilgileri içerir: Türkçe özet, oyuncu kadrosu, yönetmen, fragman, puanlar, Türkiye'de izleme platformları (Netflix, Disney+, Prime Video, TOD, TV+ vb.) ve vizyondaysa sinema bilgisi.\n\n"
+        . "URL formatı: {$baseUrl}/film/{TMDB_ID}-{film-adi}\n"
+        . "Örnek: {$baseUrl}/film/27205-baslangic\n\n"
+        . "## Öne Çıkan Sayfalar\n\n";
+
+    $topMovies = \App\Models\PageView::selectRaw('movie_id, COUNT(*) as count')
+        ->whereNotNull('movie_id')
+        ->where('url', 'like', '/film/%')
+        ->groupBy('movie_id')
+        ->orderByDesc('count')
+        ->take(10)
+        ->get();
+
+    $tmdb = app(\App\Services\TmdbService::class);
+    foreach ($topMovies as $row) {
+        $data = $tmdb->getMovieDetails($row->movie_id);
+        if ($data && !empty($data['title'])) {
+            $slug = \Illuminate\Support\Str::slug($data['title']);
+            $content .= "- [{$data['title']}]({$baseUrl}/film/{$row->movie_id}-{$slug})\n";
+        }
+    }
+
+    $content .= "\n## Son Blog Yazıları\n\n";
+    foreach (\App\Models\Post::where('is_published', true)->latest()->take(10)->get() as $post) {
+        $content .= "- [{$post->title}]({$baseUrl}/blog/{$post->slug})\n";
+    }
+
+    return response($content, 200)->header('Content-Type', 'text/plain');
+});
+
+Route::get('/llms-sitemap.xml', function () {
+    $baseUrl = url('/');
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+
+    $pages = ['/', '/vizyonda', '/yakinda', '/kesfet', '/blog', '/karsilastir'];
+    foreach ($pages as $p) {
+        $xml .= "  <url><loc>{$baseUrl}{$p}</loc><changefreq>daily</changefreq></url>" . PHP_EOL;
+    }
+
+    foreach (\App\Models\Post::where('is_published', true)->latest()->take(50)->get() as $post) {
+        $xml .= "  <url><loc>{$baseUrl}/blog/{$post->slug}</loc></url>" . PHP_EOL;
+    }
+
+    $xml .= '</urlset>';
+    return response($xml, 200)->header('Content-Type', 'application/xml');
 });
 
 Route::get('/cron/gunluk-yazi/{token}', function (string $token) {
