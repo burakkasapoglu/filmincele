@@ -40,6 +40,9 @@
                         <a href="{{ url('/yakinda') }}" class="text-sm {{ request()->is('yakinda') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} transition">
                             Yakında
                         </a>
+                        <a href="{{ url('/afisler') }}" class="text-sm {{ request()->is('afisler') ? 'text-white font-semibold' : 'text-gray-300 hover:text-white' }} transition">
+                            Afişler
+                        </a>
                         <a href="{{ url('/mod/dram?mediaType=tv') }}" class="text-sm text-gray-300 hover:text-white transition">
                             Diziler
                         </a>

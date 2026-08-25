@@ -67,6 +67,10 @@ Route::get('/kesfet', function () {
     return view('discover');
 })->name('discover');
 
+Route::get('/afisler', function () {
+    return view('posters');
+})->name('posters');
+
 Route::get('/vizyonda', function () {
     return view('now-playing');
 })->name('now-playing');

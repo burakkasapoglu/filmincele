@@ -115,6 +115,19 @@ class TmdbService
         return $data['results'] ?? [];
     }
 
+    public function getPostersPage(int $page = 1): array
+    {
+        $data = $this->fetch('/movie/popular', ['page' => $page]);
+        $totalPages = min((int) ($data['total_pages'] ?? 1), 500);
+
+        $items = array_values(array_filter(
+            $data['results'] ?? [],
+            fn ($m) => !empty($m['poster_path']) && (int) ($m['vote_count'] ?? 0) >= 20
+        ));
+
+        return ['items' => $items, 'totalPages' => $totalPages, 'page' => $page];
+    }
+
     public function getTrending(string $timeWindow = 'week'): array
     {
         $data = $this->fetch('/trending/movie/' . $timeWindow);
