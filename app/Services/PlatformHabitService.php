@@ -43,10 +43,12 @@ class PlatformHabitService
 
             $counts = [];
             foreach ($movies as $movie) {
-                if (!$movie || !$movie->tmdb_id) continue;
+                if (!$movie || !($movie->tmdb_id ?? null)) continue;
 
-                $providers = Cache::remember('tr-providers:' . $movie->tmdb_id, 86400, function () {
-                    return $this->tmdb->getWatchProviders($movie->tmdb_id);
+                $tmdbId = $movie->tmdb_id;
+
+                $providers = Cache::remember('tr-providers:' . $tmdbId, 86400, function () use ($tmdbId) {
+                    return $this->tmdb->getWatchProviders($tmdbId);
                 });
 
                 $tr = $providers['TR'] ?? [];
