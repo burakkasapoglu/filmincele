@@ -79,6 +79,10 @@ Route::get('/yakinda', function () {
     return view('upcoming');
 })->name('upcoming');
 
+Route::get('/platformlar', function () {
+    return view('platforms');
+})->name('platforms');
+
 Route::get('/platform/{providerId}/{name?}', function (int $providerId, ?string $name = null) {
     return view('platform', ['providerId' => $providerId, 'name' => $name]);
 })->name('platform');

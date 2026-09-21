@@ -318,6 +318,46 @@ class TmdbService
         return $data['results'] ?? [];
     }
 
+    public function getProviderTVContent(int $providerId, string $region = 'TR', int $page = 1): array
+    {
+        $data = $this->fetch('/discover/tv', [
+            'with_watch_providers' => $providerId,
+            'watch_region' => $region,
+            'sort_by' => 'popularity.desc',
+            'page' => $page,
+        ]);
+        return $data['results'] ?? [];
+    }
+
+    public function fetchDiscoverMovie(int $page = 1, ?int $providerId = null): array
+    {
+        $params = [
+            'sort_by' => 'popularity.desc',
+            'vote_count.gte' => 20,
+            'page' => $page,
+        ];
+        if ($providerId) {
+            $params['with_watch_providers'] = $providerId;
+            $params['watch_region'] = 'TR';
+        }
+        return $this->fetch('/discover/movie', $params) ?? [];
+    }
+
+    public function getProviderName(int $providerId): ?string
+    {
+        if ($providerId <= 0) return null;
+        $cacheKey = 'tmdb-provider-name:' . $providerId;
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($providerId) {
+            $data = $this->fetch('/watch/providers/movie', ['language' => 'tr-TR']);
+            foreach ($data['results'] ?? [] as $p) {
+                if ((int) $p['provider_id'] === $providerId) {
+                    return $p['provider_name'] ?? null;
+                }
+            }
+            return null;
+        });
+    }
+
     public function getCompanyDetails(int $companyId): ?array
     {
         return $this->fetch('/company/' . $companyId);
