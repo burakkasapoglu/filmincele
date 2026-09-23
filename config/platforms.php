@@ -16,13 +16,13 @@ return [
     ['id' => 119,  'name' => 'Amazon Prime Video', 'type' => 'both',  'color' => '#00A8E1', 'emoji' => '📺'],
     ['id' => 337,  'name' => 'Disney Plus',        'type' => 'both',  'color' => '#113CCF', 'emoji' => '🏰'],
     ['id' => 1899, 'name' => 'HBO Max',            'type' => 'both',  'color' => '#8B5CF6', 'emoji' => '🎭'],
-    ['id' => 1826, 'name' => 'TOD TV',             'type' => 'both',  'color' => '#F59E0B', 'emoji' => '⚽'],
-    ['id' => 1904, 'name' => 'TV+',               'type' => 'both',  'color' => '#DC2626', 'emoji' => '📡'],
+    ['id' => 1826, 'name' => 'TOD TV',             'type' => 'both',  'color' => '#F59E0B', 'local' => true, 'emoji' => '⚽'],
+    ['id' => 1904, 'name' => 'TV+',               'type' => 'both',  'color' => '#DC2626', 'local' => true, 'emoji' => '📡'],
 
     // Yerli platformlar
-    ['id' => 342,  'name' => 'puhutv',             'type' => 'both',  'color' => '#FF6600', 'emoji' => '🇹🇷'],
-    ['id' => 1791, 'name' => 'Exxen',              'type' => 'both',  'color' => '#F59E0B', 'emoji' => '⚽'],
-    ['id' => 1833, 'name' => 'Tivibu',             'type' => 'both',  'color' => '#0EA5E9', 'emoji' => '📺'],
+    ['id' => 342,  'name' => 'puhutv',             'type' => 'both',  'color' => '#FF6600', 'local' => true, 'emoji' => '🇹🇷'],
+    ['id' => 1791, 'name' => 'Exxen',              'type' => 'both',  'color' => '#F59E0B', 'local' => true, 'emoji' => '⚽'],
+    ['id' => 1833, 'name' => 'Tivibu',             'type' => 'both',  'color' => '#0EA5E9', 'local' => true, 'emoji' => '📺'],
 
     // Nis/zaman zaman abonelik
     ['id' => 11,   'name' => 'MUBI',               'type' => 'both',  'color' => '#000000', 'emoji' => '🎞️'],

@@ -333,14 +333,48 @@ class TmdbService
     {
         $params = [
             'sort_by' => 'popularity.desc',
-            'vote_count.gte' => 20,
+            'page' => $page,
+        ];
+        if ($providerId) {
+            $params['with_watch_providers'] = $providerId;
+            $params['watch_region'] = 'TR';
+        } else {
+            $params['vote_count.gte'] = 20;
+        }
+        return $this->fetch('/discover/movie', $params) ?? [];
+    }
+
+    public function fetchDiscoverTVPage(int $page = 1, ?int $providerId = null): array
+    {
+        $params = [
+            'sort_by' => 'popularity.desc',
             'page' => $page,
         ];
         if ($providerId) {
             $params['with_watch_providers'] = $providerId;
             $params['watch_region'] = 'TR';
         }
-        return $this->fetch('/discover/movie', $params) ?? [];
+        return $this->fetch('/discover/tv', $params) ?? [];
+    }
+
+    /**
+     * Yerli platformlar icin Turkiye menseine ait genis katalogu getirir.
+     * TMDB'nin yerli platform licencing eslemesi zayif oldugundan,
+     * provider eslesmesi tutmayan icerikleri origin-country ile dengeler.
+     */
+    public function fetchDiscoverByOriginTR(int $page = 1, string $mediaType = 'movie', ?int $providerId = null): array
+    {
+        $endpoint = $mediaType === 'tv' ? '/discover/tv' : '/discover/movie';
+        $params = [
+            'with_origin_country' => 'TR',
+            'sort_by' => 'popularity.desc',
+            'page' => $page,
+        ];
+        if ($providerId) {
+            $params['with_watch_providers'] = $providerId;
+        }
+        $data = $this->fetch($endpoint, $params) ?? [];
+        return $data['results'] ?? [];
     }
 
     public function getProviderName(int $providerId): ?string
