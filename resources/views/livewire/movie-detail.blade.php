@@ -151,7 +151,7 @@
                                                          alt="{{ $director['name'] }}"
                                                          class="w-full h-full object-cover" loading="lazy">
                                                 @else
-                                                    <img src="{{ cult_poster('rec-' . $rec['id']) }}" alt="{{ $rec['title'] }}" class="w-full h-full object-cover opacity-60">
+                                                    <img src="{{ cult_poster('dir-' . $director['id']) }}" alt="{{ $director['name'] }}" class="w-full h-full object-cover opacity-60">
                                                 @endif
                                             </div>
                                             <div>
