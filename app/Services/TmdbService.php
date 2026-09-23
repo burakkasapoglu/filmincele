@@ -345,13 +345,38 @@ class TmdbService
 
     public function getProviderName(int $providerId): ?string
     {
+        $info = $this->getProviderInfo($providerId);
+        return $info['name'] ?? null;
+    }
+
+    public function getProviderLogo(int $providerId): ?string
+    {
+        $info = $this->getProviderInfo($providerId);
+        return $info['logo'] ?? null;
+    }
+
+    public function getProviderInfo(int $providerId): ?array
+    {
         if ($providerId <= 0) return null;
-        $cacheKey = 'tmdb-provider-name:' . $providerId;
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($providerId) {
+        return \Illuminate\Support\Facades\Cache::remember('tmdb-provider:' . $providerId, 86400, function () use ($providerId) {
             $data = $this->fetch('/watch/providers/movie', ['language' => 'tr-TR']);
             foreach ($data['results'] ?? [] as $p) {
                 if ((int) $p['provider_id'] === $providerId) {
-                    return $p['provider_name'] ?? null;
+                    return [
+                        'id' => $providerId,
+                        'name' => $p['provider_name'] ?? null,
+                        'logo' => !empty($p['logo_path']) ? 'https://image.tmdb.org/t/p/w92' . $p['logo_path'] : null,
+                    ];
+                }
+            }
+            $tv = $this->fetch('/watch/providers/tv', ['language' => 'tr-TR']);
+            foreach ($tv['results'] ?? [] as $p) {
+                if ((int) $p['provider_id'] === $providerId) {
+                    return [
+                        'id' => $providerId,
+                        'name' => $p['provider_name'] ?? null,
+                        'logo' => !empty($p['logo_path']) ? 'https://image.tmdb.org/t/p/w92' . $p['logo_path'] : null,
+                    ];
                 }
             }
             return null;

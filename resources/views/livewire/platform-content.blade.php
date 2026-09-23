@@ -2,13 +2,17 @@
     @php
         $providerTitle = $provider['name'] ?? str_replace('-', ' ', $providerName);
         $color = $provider['color'] ?? '#F59E0B';
-        $emoji = $provider['emoji'] ?? '📺';
+        $logo = app(\App\Services\TmdbService::class)->getProviderLogo($this->providerId);
     @endphp
 
     <div class="flex items-center gap-5 mb-6">
-        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-             style="background: {{ $color }}22; border: 1px solid {{ $color }}40">
-            {{ $emoji }}
+        <div class="w-24 h-16 rounded-2xl flex items-center justify-center bg-white/95 p-2 shadow-lg shrink-0"
+             style="border: 1px solid {{ $color }}40">
+            @if($logo)
+                <img src="{{ $logo }}" alt="{{ $providerTitle }} logosu" class="max-w-full max-h-full object-contain" loading="lazy">
+            @else
+                <span class="text-2xl grayscale">{{ $provider['emoji'] ?? '📺' }}</span>
+            @endif
         </div>
         <div class="min-w-0">
             <h1 class="text-3xl font-bold text-white">{{ $providerTitle }}</h1>
