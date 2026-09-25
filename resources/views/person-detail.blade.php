@@ -42,9 +42,15 @@ if ($data):
         $key = $item['media_type'] . '-' . $item['id'];
         if (!in_array($key, $seen)) { $seen[] = $key; $allCredits[] = $item; }
     }
-    usort($allCredits, fn($a, $b) => strcmp($b['sort_date'], $a['sort_date']));
+    // Onemli eserler once: oy sayisi yuksek filmler/diziler hep gorunsun
+    usort($allCredits, function ($a, $b) {
+        $va = (int) ($a['vote_count'] ?? 0);
+        $vb = (int) ($b['vote_count'] ?? 0);
+        if ($va !== $vb) return $vb <=> $va;
+        return strcmp($b['sort_date'], $a['sort_date']);
+    });
     $totalCount = count($allCredits);
-    $allCredits = array_slice($allCredits, 0, 60);
+    $allCredits = array_slice($allCredits, 0, 180);
 
     $movies = array_values(array_filter($allCredits, fn($m) => ($m['media_type'] ?? 'movie') === 'movie'));
     $tvShows = array_values(array_filter($allCredits, fn($m) => ($m['media_type'] ?? 'movie') === 'tv'));
