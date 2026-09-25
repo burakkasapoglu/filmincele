@@ -65,9 +65,16 @@ class PersonDetail extends Component
                 }
             }
 
-            usort($this->allCredits, fn($a, $b) => strcmp($b['sort_date'], $a['sort_date']));
+            // Onemli eserler once: oy sayisi yuksek filmler/gekcimler klasikler
+            // dahil her zaman gorunsun; esitlik durumunda yeni tarih once.
+            usort($this->allCredits, function ($a, $b) {
+                $va = (int) ($a['vote_count'] ?? 0);
+                $vb = (int) ($b['vote_count'] ?? 0);
+                if ($va !== $vb) return $vb <=> $va;
+                return strcmp($b['sort_date'], $a['sort_date']);
+            });
             $this->totalCount = count($this->allCredits);
-            $this->allCredits = array_slice($this->allCredits, 0, 60);
+            $this->allCredits = array_slice($this->allCredits, 0, 180);
 
             if (!empty($this->allCredits)) {
                 $years = array_filter(array_map(fn($m) => $m['sort_date'] > '0000' ? (int) substr($m['sort_date'], 0, 4) : null, $this->allCredits));

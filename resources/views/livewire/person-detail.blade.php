@@ -113,7 +113,7 @@
                             {{ $person['known_for_department'] === 'Acting' ? 'Oyuncu' : ($person['known_for_department'] === 'Directing' ? 'Yönetmen' : $person['known_for_department']) }}
                         </span>
                         <span class="px-3 py-1 bg-gray-800 text-gray-300 text-sm rounded-full">
-                            🎬 {{ $totalCount > 60 ? '60 / ' . $totalCount : $totalCount }} içerik
+                            🎬 {{ $totalCount > 180 ? '180 / ' . $totalCount : $totalCount }} içerik
                         </span>
                     </div>
 
