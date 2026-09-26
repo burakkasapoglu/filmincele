@@ -14,10 +14,12 @@ class ContentIdeaService
     {
         return Cache::remember('content-ideas:upcoming:' . now()->toDateString(), 1800, function () use ($days) {
             $ideas = collect()
+                ->merge($this->cinemaIdeas())
+                ->merge($this->upcomingIdeas())
+                ->merge($this->trendIdeas())
                 ->merge($this->birthdayIdeas($days))
                 ->merge($this->anniversaryIdeas($days))
-                ->merge($this->triviaIdeas())
-                ->merge($this->trendIdeas());
+                ->merge($this->triviaIdeas());
 
             $seen = [];
             return $ideas
@@ -27,9 +29,85 @@ class ContentIdeaService
                     $seen[$key] = true;
                     return true;
                 })
-                ->sortBy(fn ($i) => $i['event_date'] ?? now()->addYears(10))
+                // Priorite: guncel icerik (vizyonda/trend/yakin) en ustte; tarihli olanlar kendi tarihlerine gore
+                ->sortBy(fn ($i) => [
+                    $i['priority'] ?? 5,
+                    $i['event_date'] ?? now()->addYears(10),
+                ])
                 ->values();
         });
+    }
+
+    /**
+     * Su anda vizyondaki filmler — gunluk video icin en guncel kaynak.
+     */
+    private function cinemaIdeas(): array
+    {
+        $tmdb = app(TmdbService::class);
+        $nowPlaying = collect($tmdb->getNowPlaying())->take(8);
+        $ideas = [];
+
+        foreach ($nowPlaying as $m) {
+            $title = $m['title'] ?? '';
+            if (!$title) continue;
+
+            $year = substr($m['release_date'] ?? '', 0, 4);
+            $boxOffice = '';
+            if (!empty($m['vote_average']) && $m['vote_average'] >= 7) {
+                $boxOffice = " Eleştirmen ve izleyici puanı yüksek (★ {$m['vote_average']}) — 'neden bu hafta görülmeli' videonu çekme zamanı.";
+            }
+
+            $ideas[] = [
+                'type' => 'cinema',
+                'icon' => '🍿',
+                'title' => 'Vizyonda: ' . $title . ($year ? ' (' . $year . ')' : ''),
+                'event_date' => null,
+                'priority' => 1,
+                'tmdb_ref' => 'cinema:' . $m['id'],
+                'tmdb_id' => $m['id'],
+                'kind' => 'movie',
+                'suggestion' => "**{$title}** şu anda sinemalarda. Haftanın vizyon filmlerini tanıt, izleyip izlemeye değer mi yorumunu yap." . $boxOffice .
+                    " Video fikri: 'Bu hafta vizyondaki 3 film — hangisi değer?'",
+                'when_label' => 'Şu anda vizyonda',
+            ];
+        }
+
+        return $ideas;
+    }
+
+    /**
+     * Yakin vizyon takvimi — 'harika olacak' icerikleri.
+     */
+    private function upcomingIdeas(): array
+    {
+        $tmdb = app(TmdbService::class);
+        $upcoming = collect($tmdb->getUpcoming())->take(6);
+        $ideas = [];
+
+        foreach ($upcoming as $m) {
+            $title = $m['title'] ?? '';
+            $date = substr($m['release_date'] ?? '', 0, 10);
+            if (!$title || !$date || $date < now()->toDateString()) continue;
+
+            $when = $date === now()->toDateString()
+                ? 'Bugün vizyona giriyor 🎉'
+                : 'Vizyon tarihi: ' . \Carbon\Carbon::parse($date)->format('d.m.Y');
+
+            $ideas[] = [
+                'type' => 'upcoming',
+                'icon' => '🗓️',
+                'title' => 'Yakında: ' . $title,
+                'event_date' => $date,
+                'priority' => 2,
+                'tmdb_ref' => 'upcoming:' . $m['id'],
+                'tmdb_id' => $m['id'],
+                'kind' => 'movie',
+                'suggestion' => "**{$title}** yakında vizyona giriyor ({$when}). Fragmanını izlet, yönetmen/kadro analizi yap, 'bu film rekor kırar mı?' tahmin videolu içerik üret.",
+                'when_label' => $when,
+            ];
+        }
+
+        return $ideas;
     }
 
     private function birthdayIdeas(int $days): array
@@ -56,6 +134,7 @@ class ContentIdeaService
                     'icon' => '🎂',
                     'title' => $p['name'] . ' doğum günü' . ($age ? " ({$age})" : ''),
                     'event_date' => $date->toDateString(),
+                    'priority' => 3,
                     'tmdb_ref' => 'person:' . $p['tmdb_id'],
                     'tmdb_id' => $p['tmdb_id'],
                     'kind' => 'person',
@@ -96,6 +175,7 @@ class ContentIdeaService
                     'icon' => $rounded ? '🏆' : '🎬',
                     'title' => ($m['title'] ?? '') . " vizyona girişinin " . (now()->year - (int) $year) . ". yılı",
                     'event_date' => $date->toDateString(),
+                    'priority' => 4,
                     'tmdb_ref' => 'movie:' . $m['id'],
                     'tmdb_id' => $m['id'],
                     'kind' => 'movie',
@@ -118,6 +198,7 @@ class ContentIdeaService
                 'icon' => '💡',
                 'title' => 'Biliyor muydunuz? — Yönetmenlerin gizli Cameo rolları',
                 'event_date' => null,
+                'priority' => 6,
                 'tmdb_ref' => 'trivia:cameo',
                 'suggestion' => 'Ünlü yönetmenlerin kendi filmlerindeki küçük rolleri (Hitchcock, Tarantino, Nolan...) bir araya getirilerek "Bunu biliyor muydunuz?" formatında video veya liste içeriği yapılabilir.',
                 'when_label' => 'Esnek',
@@ -127,6 +208,7 @@ class ContentIdeaService
                 'icon' => '💡',
                 'title' => 'Biliyor muydunuz? — Aynı filmi çeviren iki yönetmen',
                 'event_date' => null,
+                'priority' => 6,
                 'tmdb_ref' => 'trivia:remakes',
                 'suggestion' => 'Birbirinden farklı iki yönetmenin aynı hikâyeyi farklı yorumladığı filmler (örn. iki farklı versiyon/uyarlama) karşılaştırmalı içerik olabilir.',
                 'when_label' => 'Esnek',
@@ -136,6 +218,7 @@ class ContentIdeaService
                 'icon' => '🍿',
                 'title' => 'İzleyici anketi — Bu ay çıkacak filmlerden hangisini bekliyorsunuz?',
                 'event_date' => null,
+                'priority' => 6,
                 'tmdb_ref' => 'trivia:poll',
                 'suggestion' => 'Yakında çıkacak 5-6 film listelenip takipçilere soru sorulabilir; sonuçlar bir sonraki yazıda değerlendirilir. Etkileşim artırır.',
                 'when_label' => 'Esnek',
@@ -157,6 +240,7 @@ class ContentIdeaService
                 'icon' => '🔥',
                 'title' => 'Trend: ' . $title . ' neden konuşuluyor?',
                 'event_date' => null,
+                'priority' => 2,
                 'tmdb_ref' => ($t['media_type'] ?? 'movie') . ':' . $t['id'],
                 'tmdb_id' => $t['id'],
                 'kind' => $t['media_type'] === 'tv' ? 'tv' : 'movie',
