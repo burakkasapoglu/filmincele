@@ -265,56 +265,48 @@ class ContentIdeaService
         $platforms = collect(config('platforms'))
             ->filter(fn ($p) => in_array((int) $p['id'], [8, 119, 337, 1899, 1826, 1904, 342, 1791, 1833, 11, 283]))
             ->values();
-        if ($platforms->isEmpty()) return [];
-
-        // Hafta bazli tek platform sec: her hafta yeni platform
-        $week = (int) now()->format('W');
-        $stage = $week % $platforms->count();
-        $selected = $platforms[$stage];
-        $pid = (int) $selected['id'];
 
         $ideas = [];
 
-        // Platformun en populer dizileri ve filmleri
-        $tv = collect($tmdb->fetchDiscoverTVPage(1, $pid)['results'] ?? [])->take(3);
-        $mv = collect($tmdb->fetchDiscoverMovie(1, $pid)['results'] ?? [])->take(3);
+        // Her platformdan 1 dizi + 1 film fikri — haftanin sırasi degil, hepsi gorunsun
+        foreach ($platforms as $selected) {
+            $pid = (int) $selected['id'];
 
-        foreach ($tv as $i => $show) {
-            $title = $show['name'] ?? '';
-            if (!$title) continue;
-            $ideas[] = [
-                'type' => 'platform',
-                'icon' => '📺',
-                'title' => $selected['name'] . ' en çok tutan dizi: ' . $title . ($i === 0 ? ' — neden tuttu?' : ''),
-                'event_date' => null,
-                'priority' => 2,
-                'tmdb_ref' => 'platform-tv:' . $pid . ':' . $show['id'],
-                'tmdb_id' => $show['id'],
-                'kind' => 'tv',
-                'suggestion' => "**{$title}**, {$selected['name']} platformunda en popüler dizilerden. " .
-                    "Neden bu kadar tuttu? İzleyiciyi çeken hikaye/görsel kadro faktörlerini analiz et. " .
-                    "Video fikri: '{$selected['name']} haftanın olayı olan dizisi' ya da öğrenci izleyici kitle analizi.",
-                'when_label' => 'Haftanın platformu: ' . $selected['name'],
-            ];
-        }
+            $topTv = collect($tmdb->fetchDiscoverTVPage(1, $pid)['results'] ?? [])->first();
+            if ($topTv && !empty($topTv['name'])) {
+                $ideas[] = [
+                    'type' => 'platform',
+                    'icon' => '📺',
+                    'title' => $selected['name'] . ' en çok tutan dizi: ' . $topTv['name'] . ' — neden tuttu?',
+                    'event_date' => null,
+                    'priority' => 2,
+                    'tmdb_ref' => 'platform-tv:' . $pid . ':' . $topTv['id'],
+                    'tmdb_id' => $topTv['id'],
+                    'kind' => 'tv',
+                    'suggestion' => "**{$topTv['name']}**, {$selected['name']} platformunda en popüler dizilerden. " .
+                        "Neden bu kadar tuttu? İzleyiciyi çeken hikaye/kadro faktörlerini analiz et. " .
+                        "Video fikri: '{$selected['name']} haftanın olayı olan dizisi'.",
+                    'when_label' => $selected['name'],
+                ];
+            }
 
-        foreach ($mv as $i => $movie) {
-            $title = $movie['title'] ?? '';
-            if (!$title) continue;
-            $ideas[] = [
-                'type' => 'platform',
-                'icon' => '🎬',
-                'title' => $selected['name'] . ' en çok izlenen film: ' . $title . ($i === 0 ? ' — neden tuttu?' : ''),
-                'event_date' => null,
-                'priority' => 2,
-                'tmdb_ref' => 'platform-mv:' . $pid . ':' . $movie['id'],
-                'tmdb_id' => $movie['id'],
-                'kind' => 'movie',
-                'suggestion' => "**{$title}**, {$selected['name']} platformunda öne çıkan film. " .
-                    "Bu hafta hangi içerikler izleniyor, neden şu an popüler? " .
-                    "Video fikri: '{$selected['name']} bu hafta ne izleyelim?' — platform kataloğundan en iyi 3 seçim.",
-                'when_label' => 'Haftanın platformu: ' . $selected['name'],
-            ];
+            $topMv = collect($tmdb->fetchDiscoverMovie(1, $pid)['results'] ?? [])->first();
+            if ($topMv && !empty($topMv['title'])) {
+                $ideas[] = [
+                    'type' => 'platform',
+                    'icon' => '🎬',
+                    'title' => $selected['name'] . ' en çok izlenen film: ' . $topMv['title'] . ' — neden tuttu?',
+                    'event_date' => null,
+                    'priority' => 2,
+                    'tmdb_ref' => 'platform-mv:' . $pid . ':' . $topMv['id'],
+                    'tmdb_id' => $topMv['id'],
+                    'kind' => 'movie',
+                    'suggestion' => "**{$topMv['title']}**, {$selected['name']} platformunda öne çıkan film. " .
+                        "Bu hafta hangi içerikler izleniyor, neden şu an popüler? " .
+                        "Video fikri: '{$selected['name']} bu hafta ne izleyelim?' — katalogdan en iyi 3 seçim.",
+                    'when_label' => $selected['name'],
+                ];
+            }
         }
 
         return $ideas;
