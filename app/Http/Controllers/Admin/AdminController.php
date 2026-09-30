@@ -170,10 +170,17 @@ class AdminController extends Controller
         $topic = $data['suggestion'] ?: $data['title'];
 
         try {
-            $script = $video->generateScript($data['title'] . '. ' . $topic);
+            // Fikrin TMDB referansindan GERCEK, dogrulanmis icerik listesi kur
+            $verifiedItems = $this->buildVerifiedItemsForIdea($data['title'], $data['type'], $data['tmdb_ref']);
+
+            if (empty($verifiedItems)) {
+                return back()->with('idea_error', 'Bu fikir için TMDB üzerinden doğrulanmış içerik bulunamadı. Fikri güncelleyip tekrar deneyin.');
+            }
+
+            $script = $video->generateScript($data['title'] . '. ' . $topic, $verifiedItems);
 
             if (!$script) {
-                return back()->with('idea_error', 'Video metni üretilemedi, tekrar deneyin.');
+                return back()->with('idea_error', $video->getLastError() ?? 'Video metni üretilemedi, tekrar deneyin.');
             }
 
             \App\Models\ContentIdea::updateOrCreate(
@@ -191,6 +198,127 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return back()->with('idea_error', 'Hata: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Fikrin tmdb_ref degerinden TMDB'de GERCEK var olan icerik listesi kurar.
+     * Ref formatlari: movie:ID / tv:ID / cinema:ID / upcoming:ID / anniversary-ish movie:ID /
+     * platform-tv:PROVIDER:ID / platform-mv:PROVIDER:ID / person:ID / trend movie|tv:ID
+     */
+    private function buildVerifiedItemsForIdea(string $title, string $type, string $tmdbRef): array
+    {
+        $tmdb = app(\App\Services\TmdbService::class);
+        $items = [];
+
+        // Ref icinden sayilari cek
+        $parts = explode(':', $tmdbRef);
+        $numbers = [];
+        foreach ($parts as $part) {
+            if (is_numeric($part)) $numbers[] = (int) $part;
+        }
+
+        if ($type === 'person' || str_starts_with($tmdbRef, 'person:')) {
+            // Kisinin onemli yapimlari
+            $personId = $numbers[0] ?? 0;
+            $person = $tmdb->getPersonDetails($personId);
+            if ($person) {
+                $credits = array_merge(
+                    $person['movie_credits']['cast'] ?? [],
+                    $person['movie_credits']['crew'] ?? []
+                );
+                usort($credits, fn ($a, $b) => (int) ($b['vote_count'] ?? 0) <=> (int) ($a['vote_count'] ?? 0));
+                foreach (array_slice($credits, 0, 10) as $c) {
+                    if (empty($c['title'])) continue;
+                    $items[] = [
+                        'id' => $c['id'],
+                        'title' => $c['title'],
+                        'year' => substr($c['release_date'] ?? '', 0, 4),
+                        'overview' => $c['overview'] ?? '',
+                        'type' => 'movie',
+                    ];
+                }
+            }
+            return $items;
+        }
+
+        // Ana icerik: ref'teki ilk sayi icerik ID'si, ikincisi (platformlarda) provider ID
+        $contentId = $numbers[0] ?? 0;
+        $isTv = str_contains($tmdbRef, 'tv') && !str_starts_with($tmdbRef, 'cinema');
+        $isPlatformTv = str_contains($tmdbRef, 'platform-tv');
+        $isPlatformMv = str_contains($tmdbRef, 'platform-mv');
+
+        // Platform fikri ise: ilk sayi PROVIDER olabilir — ref'i coz
+        $providerId = null;
+        if ($isPlatformTv || $isPlatformMv) {
+            $providerId = $numbers[0] ?? null;
+            $contentId = $numbers[1] ?? 0;
+        }
+
+        // Ana icerik bilgisi + one ciklar
+        if ($contentId > 0) {
+            if ($isTv || $isPlatformTv) {
+                $details = $tmdb->getTVDetails($contentId);
+                if ($details) {
+                    $items[] = [
+                        'id' => $contentId,
+                        'title' => $details['name'] ?? '',
+                        'year' => substr($details['first_air_date'] ?? '', 0, 4),
+                        'overview' => $details['overview'] ?? '',
+                        'type' => 'tv',
+                    ];
+                }
+            } else {
+                $details = $tmdb->getMovieDetails($contentId);
+                if ($details) {
+                    $items[] = [
+                        'id' => $contentId,
+                        'title' => $details['title'] ?? '',
+                        'year' => substr($details['release_date'] ?? '', 0, 4),
+                        'overview' => $details['overview'] ?? '',
+                        'type' => 'movie',
+                    ];
+                }
+            }
+        }
+
+        // Benzer/ilintili gercek icerik: ana icerigin onerileri
+        if ($contentId > 0) {
+            foreach ($tmdb->getMovieRecommendations($contentId) as $r) {
+                if (count($items) >= 8) break;
+                if (empty($r['title']) || empty($r['overview'])) continue;
+                $items[] = [
+                    'id' => $r['id'],
+                    'title' => $r['title'],
+                    'year' => substr($r['release_date'] ?? '', 0, 4),
+                    'overview' => $r['overview'] ?? '',
+                    'type' => 'movie',
+                ];
+            }
+        }
+
+        // Platform fikri: platformun gercek katalog onceligi
+        if ($providerId) {
+            $pool = app(\App\Services\TmdbService::class)->fetchDiscoverTVPage(1, $providerId)['results'] ?? [];
+            if ($isPlatformMv) {
+                $pool = app(\App\Services\TmdbService::class)->fetchDiscoverMovie(1, $providerId)['results'] ?? [];
+            }
+            $seen = array_flip(array_column($items, 'id'));
+            foreach ($pool as $r) {
+                if (count($items) >= 8) break;
+                if (isset($seen[$r['id']])) continue;
+                $t = $r['title'] ?? $r['name'] ?? '';
+                if (!$t) continue;
+                $items[] = [
+                    'id' => $r['id'],
+                    'title' => $t,
+                    'year' => substr($r['release_date'] ?? $r['first_air_date'] ?? '', 0, 4),
+                    'overview' => $r['overview'] ?? '',
+                    'type' => $isPlatformTv ? 'tv' : 'movie',
+                ];
+            }
+        }
+
+        return $items;
     }
 
     public function generateBlogFromIdea(Request $request)
