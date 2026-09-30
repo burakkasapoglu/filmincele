@@ -114,6 +114,23 @@ class AdminController extends Controller
             })->values();
         }
 
+        $ideas = $ideas->map(function ($idea) {
+            // Video metni varsa dogrulama damgasini kontrol et
+            $idea['script_ok'] = null;
+            $idea['script_used_titles'] = [];
+            if (!empty($idea['script'])) {
+                $decoded = json_decode($idea['script'], true);
+                if (is_array($decoded) && isset($decoded['_verified'])) {
+                    $idea['script_ok'] = true;
+                    $idea['script_used_titles'] = $decoded['_verified']['kullanilan'] ?? [];
+                } elseif (is_array($decoded)) {
+                    // Eski uretimlerde damga yok — guvenli olarak isaretlenmemis sayilir
+                    $idea['script_ok'] = false;
+                }
+            }
+            return $idea;
+        });
+
         return view('admin.content-ideas', [
             'ideas' => $ideas,
             'tab' => $tab,

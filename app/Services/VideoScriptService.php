@@ -64,17 +64,28 @@ class VideoScriptService
 
             $unknown = $this->validateReferences($result, $verifiedItems);
 
+            // Gemini'nin 'mentioned' alanindaki tum adlari da dogrula (kose parantez
+            // kullanmadan gecirdigi uydurma adlari da yakalar)
+            $mentionedUnknown = $this->validateMentioned($result, $verifiedItems);
+            $unknown = array_values(array_unique(array_merge($unknown, $mentionedUnknown)));
+
             // Uydurma ad yoksa da: hicbir icerik adi isaretlenmemis ise (kose parantez
             // yoksa) senaryo saf yaraticiliga kaymis olabilir — reddet ve yeniden iste.
             if (empty($unknown)) {
                 $refCount = $this->countBracketedReferences($result);
-                $expected = min(count($verifiedItems), 3);
-                if ($refCount === 0 && count($verifiedItems) > 0) {
+                $mentionedCount = count($result['mentioned'] ?? []);
+                if (($refCount + $mentionedCount) === 0 && count($verifiedItems) > 0) {
                     $unknown = ['(hicbir dogrulanmis icerik adi kullanilmadi — en az 1 tanesini [Ad] formunda kullan)'];
                 }
             }
 
             if (empty($unknown)) {
+                // Onay damgasi: cekimden once goruntulenebilir dogrulama raporu
+                $result['_verified'] = [
+                    'checked_at' => now()->toDateTimeString(),
+                    'kaynak' => count($verifiedItems) . ' dogrulanmis icerik',
+                    'kullanilan' => $this->usedVerifiedTitles($result, $verifiedItems),
+                ];
                 return $result;
             }
 
@@ -129,7 +140,103 @@ DIGER KURALLAR:
 - Video basligi kisa ve meraklandirici olsun (max 60 karakter)
 - Sosyal medya aciklamasi 1-2 cumle + 8-12 hashtag (Turkce agirlikli)
 
-SADECE JSON dondur: {\"video_title\":\"...\",\"hook\":\"ilk 3 saniye cumlesi\",\"script\":\"konusma metni (paragraflar halinde)\",\"visual_notes\":[\"sahne 1: ...\",\"sahne 2: ...\"],\"sm_caption\":\"sosyal medya aciklamasi\",\"hashtags\":[\"#...\",\"#...\"]}";
+SADECE JSON dondur: {\"video_title\":\"...\",\"hook\":\"ilk 3 saniye cumlesi\",\"script\":\"konusma metni (paragraflar halinde)\",\"visual_notes\":[\"sahne 1: ...\"],\"sm_caption\":\"sosyal medya aciklamasi\",\"hashtags\":[\"#...\"],\"mentioned\":[\"metinde gecen HER film/dizi adi (kose parantezli ya da parantezsiz, tekrarsiz)\"]}";
+    }
+
+    /**
+     * Referansin gecerli olup olmadigini kesin sekilde dogrula:
+     * 1) Dogrulanmis listede tam/buyuk olcude eslesme
+     * 2) Olmazsa TMDB'de GERCEKTEN var olan bir kayit mi (cache'li 48 saat)
+     */
+    private function referenceValid(string $title, array $verifiedItems): bool
+    {
+        foreach ($verifiedItems as $item) {
+            if ($this->titleMatches($title, $item['title'])) {
+                return true;
+            }
+        }
+
+        // Uydurma suphesi: TMDB'de gercek bir kayit ara
+        try {
+            $cacheKey = 'script-ref-check:' . md5(mb_strtolower(trim($title)));
+            return (bool) \Illuminate\Support\Facades\Cache::remember($cacheKey, 172800, function () use ($title) {
+                $tmdb = app(TmdbService::class);
+                foreach (array_merge($tmdb->searchMulti($title), $tmdb->searchMovies($title)) as $r) {
+                    $candidate = $r['title'] ?? $r['name'] ?? '';
+                    if (!$candidate) continue;
+                    $norm = fn (string $s) => mb_strtolower(trim(preg_replace('/\s*\(\d{4}\)\s*$/u', '', trim($s))));
+                    if ($norm($candidate) === $norm($title)) {
+                        $votes = (int) ($r['vote_count'] ?? 0);
+                        $hasData = !empty(trim((string) ($r['overview'] ?? '')));
+                        return $votes >= 20 || $hasData;
+                    }
+                }
+                return false;
+            });
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Gemini'nin 'mentioned' listesindeki tum adlari dogrular.
+     * Kose parantez kullanmadan gecirtilen uydurma adlari da yakalar.
+     */
+    private function validateMentioned(array $result, array $verifiedItems): array
+    {
+        $mentions = $result['mentioned'] ?? [];
+        if (empty($mentions) || !is_array($mentions)) {
+            return [];
+        }
+
+        $unknown = [];
+        foreach ($mentions as $mention) {
+            if (!is_string($mention) || trim($mention) === '') continue;
+            if (!$this->referenceValid($mention, $verifiedItems)) {
+                $unknown[] = $mention;
+            }
+        }
+        return $unknown;
+    }
+
+    private function titleMatches(string $candidate, string $verified): bool
+    {
+        $norm = fn (string $s) => mb_strtolower(trim(preg_replace('/\s*\(\d{4}\)\s*$/u', '', trim($s))));
+        $a = $norm($candidate);
+        $b = $norm($verified);
+        if ($a === $b) return true;
+
+        // alt kume eslesmesi yalnizca uzun ve pak benzerlikte kabul edilir
+        if (mb_strlen($a) >= 10 && mb_strlen($b) >= 10) {
+            if (str_contains($b, $a) || str_contains($a, $b)) {
+                // 'Resident Evil 9' -> 'Resident Evil' gibi tek kelime farki uydurma olabilir;
+                // alt kume eslesmesinde kisa tarafin uzunliga orani yuksekse onayla
+                $min = min(mb_strlen($a), mb_strlen($b));
+                $ratio = $min / max(mb_strlen($a), mb_strlen($b));
+                return $ratio >= 0.72;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Senaryoda gercekten kullanilmis, dogrulanmis basliklari dondurur.
+     */
+    private function usedVerifiedTitles(array $result, array $verifiedItems): array
+    {
+        $fields = array_filter([$result['video_title'] ?? '', $result['hook'] ?? '', $result['script'] ?? '', $result['sm_caption'] ?? '']);
+        $fields = array_merge($fields, $result['visual_notes'] ?? []);
+        $text = implode("\n", $fields);
+
+        $used = [];
+        foreach ($verifiedItems as $item) {
+            if (mb_strlen($item['title']) < 4) continue;
+            if (mb_stripos($text, $item['title']) !== false) {
+                $used[] = $item['title'];
+            }
+        }
+        return array_slice(array_values(array_unique($used)), 0, 8);
     }
 
     private function callGemini(string $prompt): ?array
@@ -189,26 +296,10 @@ SADECE JSON dondur: {\"video_title\":\"...\",\"hook\":\"ilk 3 saniye cumlesi\",\
         preg_match_all('/\[([^\]]{2,80})\]/u', $text, $m);
         $unknown = [];
         foreach ($m[1] as $ref) {
-            $refClean = mb_strtolower(trim($ref));
-            // yil/parantez temizlik
-            $refBase = trim(preg_replace('/\s*\(\d{4}\)\s*$/u', '', $refClean));
-            $refBase = trim(preg_replace('/\s*(\-|\|)\s*(film|dizi|dizisi)$/u', '', $refBase));
-
-            $matched = false;
-            foreach ($validTitles as $vt) {
-                $vtBase = trim(preg_replace('/\s*\(\d{4}\)\s*$/u', '', $vt));
-                if ($refBase === $vt || $refBase === $vtBase || str_contains($vt, $refBase) || str_contains($refBase, $vt)) {
-                    // Kucuk eslesmelerde asiri esnek olma: kisa ve genel kelimeler eslesmesin
-                    if (mb_strlen($refBase) < 5 && $refBase !== $vtBase) {
-                        continue;
-                    }
-                    $matched = true;
-                    break;
-                }
+            if ($this->referenceValid($ref, $verifiedItems)) {
+                continue;
             }
-            if (!$matched) {
-                $unknown[] = $ref;
-            }
+            $unknown[] = $ref;
         }
 
         return array_values(array_unique($unknown));

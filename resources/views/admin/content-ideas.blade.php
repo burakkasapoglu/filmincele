@@ -59,6 +59,14 @@
                             @endif
                             @if($videoScript)
                                 <span class="text-[10px] bg-rose-600/10 text-rose-400 px-2 py-0.5 rounded-md border border-rose-600/20">🎬 Video metni hazır</span>
+                                @if($idea['script_ok'] ?? null)
+                                    <span class="text-[10px] bg-emerald-600/10 text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-600/20">✅ İçerikler doğrulandı</span>
+                                @else
+                                    <span class="text-[10px] bg-red-600/15 text-red-400 px-2 py-0.5 rounded-md border border-red-600/30 font-semibold">⚠️ DOĞRULANMADI — çekmeden önce yeniden üret</span>
+                                @endif
+                                @if(!empty($idea['script_used_titles']))
+                                    <span class="text-emerald-400/70 text-[10px]">📌 {{ implode(' • ', array_slice($idea['script_used_titles'], 0, 4)) }}</span>
+                                @endif
                             @endif
                         </div>
                         @if($idea['suggestion'] ?? null)
