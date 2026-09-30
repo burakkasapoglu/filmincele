@@ -14,3 +14,4 @@ public/hot
 .vscode/
 public/sitemap.xml
 public/sitemap_index.xml
+.npm-cache/
