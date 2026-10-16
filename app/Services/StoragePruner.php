@@ -71,45 +71,50 @@ class StoragePruner
 
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::LEAVES_ONLY
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD
         );
 
         foreach ($iterator as $file) {
-            if (!$file->isFile() || str_starts_with($file->getFilename(), '.')) {
-                continue;
-            }
-
-            $path = $file->getPathname();
-            $mtime = $file->getMTime();
-
-            if ($mtime < $cutoff) {
-                $size = (int) $file->getSize();
-                if (@unlink($path)) {
-                    $stats['cache']++;
-                    $stats['bytes'] += $size;
+            try {
+                if (!$file->isFile() || str_starts_with($file->getFilename(), '.')) {
+                    continue;
                 }
-                continue;
-            }
 
-            if ($heap->count() < $maxCacheFiles) {
-                $heap->insert([$mtime, $path]);
-                continue;
-            }
+                $path = $file->getPathname();
+                $mtime = $file->getMTime();
 
-            if ($mtime > $heap->top()[0]) {
-                $evicted = $heap->extract();
-                $size = (int) @filesize($evicted[1]);
-                if (@unlink($evicted[1])) {
-                    $stats['cache_cap']++;
-                    $stats['bytes'] += $size;
+                if ($mtime < $cutoff) {
+                    $size = (int) $file->getSize();
+                    if (@unlink($path)) {
+                        $stats['cache']++;
+                        $stats['bytes'] += $size;
+                    }
+                    continue;
                 }
-                $heap->insert([$mtime, $path]);
-            } else {
-                $size = (int) $file->getSize();
-                if (@unlink($path)) {
-                    $stats['cache_cap']++;
-                    $stats['bytes'] += $size;
+
+                if ($heap->count() < $maxCacheFiles) {
+                    $heap->insert([$mtime, $path]);
+                    continue;
                 }
+
+                if ($mtime > $heap->top()[0]) {
+                    $evicted = $heap->extract();
+                    $size = (int) @filesize($evicted[1]);
+                    if (@unlink($evicted[1])) {
+                        $stats['cache_cap']++;
+                        $stats['bytes'] += $size;
+                    }
+                    $heap->insert([$mtime, $path]);
+                } else {
+                    $size = (int) $file->getSize();
+                    if (@unlink($path)) {
+                        $stats['cache_cap']++;
+                        $stats['bytes'] += $size;
+                    }
+                }
+            } catch (\UnexpectedValueException | \RuntimeException $e) {
+                continue;
             }
         }
     }
@@ -124,16 +129,20 @@ class StoragePruner
         $cutoff = now()->subDays(self::SESSION_MAX_AGE_DAYS)->getTimestamp();
 
         foreach (new \FilesystemIterator($dir, \FilesystemIterator::SKIP_DOTS) as $file) {
-            if (!$file->isFile() || str_starts_with($file->getFilename(), '.')) {
-                continue;
-            }
-
-            if ($file->getMTime() < $cutoff) {
-                $size = (int) $file->getSize();
-                if (@unlink($file->getPathname())) {
-                    $stats['sessions']++;
-                    $stats['bytes'] += $size;
+            try {
+                if (!$file->isFile() || str_starts_with($file->getFilename(), '.')) {
+                    continue;
                 }
+
+                if ($file->getMTime() < $cutoff) {
+                    $size = (int) $file->getSize();
+                    if (@unlink($file->getPathname())) {
+                        $stats['sessions']++;
+                        $stats['bytes'] += $size;
+                    }
+                }
+            } catch (\UnexpectedValueException | \RuntimeException $e) {
+                continue;
             }
         }
     }
@@ -148,16 +157,20 @@ class StoragePruner
         $cutoff = now()->subDays(self::LOG_MAX_AGE_DAYS)->getTimestamp();
 
         foreach (new \FilesystemIterator($dir, \FilesystemIterator::SKIP_DOTS) as $file) {
-            if (!$file->isFile() || !preg_match('/^laravel-\d{4}-\d{2}-\d{2}\.log$/', $file->getFilename())) {
-                continue;
-            }
-
-            if ($file->getMTime() < $cutoff) {
-                $size = (int) $file->getSize();
-                if (@unlink($file->getPathname())) {
-                    $stats['logs']++;
-                    $stats['bytes'] += $size;
+            try {
+                if (!$file->isFile() || !preg_match('/^laravel-\d{4}-\d{2}-\d{2}\.log$/', $file->getFilename())) {
+                    continue;
                 }
+
+                if ($file->getMTime() < $cutoff) {
+                    $size = (int) $file->getSize();
+                    if (@unlink($file->getPathname())) {
+                        $stats['logs']++;
+                        $stats['bytes'] += $size;
+                    }
+                }
+            } catch (\UnexpectedValueException | \RuntimeException $e) {
+                continue;
             }
         }
     }
